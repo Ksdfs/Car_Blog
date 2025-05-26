@@ -3,6 +3,8 @@ package com.thiCK.CarBlog.repository;
 import com.thiCK.CarBlog.entity.Post;
 import com.thiCK.CarBlog.entity.Category; 
 import com.thiCK.CarBlog.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -30,5 +32,12 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     // Tìm bài viết theo tiêu đề bắt đầu bằng keyword, không phân biệt hoa thường
     List<Post> findByTitleStartingWithIgnoreCase(String titlePrefix);
     
-    
+    Page<Post> findByUser(User user, Pageable pageable);
+
+    Page<Post> findByUserAndStatus(User user, String status, Pageable pageable);
+
+    Page<Post> findByUserAndCategory_CategoryId(User user, Integer categoryId, Pageable pageable);
+
+    Page<Post> findByUserAndStatusAndCategory_CategoryId(User user, String status, Integer categoryId, Pageable pageable);
+
 }

@@ -13,6 +13,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
+
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.*;
@@ -193,5 +195,23 @@ public class PostService {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         return postRepo.findAll(pageable);
     }
+    
+    public Page<Post> getUserPostsPaged(User user, int page, int size, String status, Integer categoryId, String sort) {
+        Pageable pageable = switch (sort) {
+            case "oldest" -> PageRequest.of(page, size, Sort.by("createdAt").ascending());
+            case "most-viewed" -> PageRequest.of(page, size, Sort.by("viewCount").descending());
+            case "most-commented" -> PageRequest.of(page, size, Sort.by("comments.size").descending()); // hoặc custom query
+            default -> PageRequest.of(page, size, Sort.by("createdAt").descending());
+        };
 
+        if (status != null && categoryId != null) {
+            return postRepo.findByUserAndStatusAndCategory_CategoryId(user, status, categoryId, pageable);
+        } else if (status != null) {
+            return postRepo.findByUserAndStatus(user, status, pageable);
+        } else if (categoryId != null) {
+            return postRepo.findByUserAndCategory_CategoryId(user, categoryId, pageable);
+        } else {
+            return postRepo.findByUser(user, pageable);
+        }
+    }
 }

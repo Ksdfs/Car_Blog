@@ -45,9 +45,11 @@ public class UserController {
     @GetMapping("/post")
     public String myPosts(HttpSession session,
                           Model model,
-                          @RequestParam(name = "status",   required = false) String   status,
-                          @RequestParam(name = "category", required = false) Integer  categoryId,
-                          @RequestParam(name = "sort",     defaultValue = "newest") String sort) {
+                          @RequestParam(name = "status",   required = false) String status,
+                          @RequestParam(name = "category", required = false) Integer categoryId,
+                          @RequestParam(name = "sort",     defaultValue = "newest") String sort,
+                          @RequestParam(name = "page",     defaultValue = "0") int page) {
+
         User currentUser = (User) session.getAttribute("currentUser");
         if (currentUser == null) {
             return "redirect:/login";
@@ -67,21 +69,28 @@ public class UserController {
         // Sắp xếp
         Comparator<Post> comp;
         switch (sort) {
-            case "oldest"        -> comp = Comparator.comparing(Post::getCreatedAt);
-            case "most-viewed"   -> comp = Comparator.comparingInt(Post::getViewCount).reversed();
-            case "most-commented"-> comp = Comparator.<Post>comparingInt(p -> p.getComments().size()).reversed();
-            default              -> comp = Comparator.comparing(Post::getCreatedAt).reversed();
+            case "oldest"         -> comp = Comparator.comparing(Post::getCreatedAt);
+            case "most-viewed"    -> comp = Comparator.comparingInt(Post::getViewCount).reversed();
+            case "most-commented" -> comp = Comparator.<Post>comparingInt(p -> p.getComments().size()).reversed();
+            default               -> comp = Comparator.comparing(Post::getCreatedAt).reversed();
         }
         filtered.sort(comp);
 
-        // Tính các số liệu tổng hợp
-        int totalPosts    = filtered.size();
+        // PHÂN TRANG
+        int size = 6;
+        int totalPosts = filtered.size();
+        int totalPages = (int) Math.ceil((double) totalPosts / size);
+        int fromIndex = Math.min(page * size, totalPosts);
+        int toIndex   = Math.min(fromIndex + size, totalPosts);
+        List<Post> pagePosts = filtered.subList(fromIndex, toIndex);
+
+        // Tính số liệu thống kê
         int totalViews    = filtered.stream().mapToInt(Post::getViewCount).sum();
         int totalComments = filtered.stream().mapToInt(p -> p.getComments().size()).sum();
         int totalLikes    = filtered.stream().mapToInt(Post::getLikeCount).sum();
 
-        // Đẩy vào model
-        model.addAttribute("userPosts",     filtered);
+        // Gửi dữ liệu ra view
+        model.addAttribute("userPosts",     pagePosts);
         model.addAttribute("categories",    categoryService.findAll());
         model.addAttribute("status",        status);
         model.addAttribute("categoryId",    categoryId);
@@ -90,9 +99,12 @@ public class UserController {
         model.addAttribute("totalViews",    totalViews);
         model.addAttribute("totalComments", totalComments);
         model.addAttribute("totalLikes",    totalLikes);
+        model.addAttribute("currentPage",   page);
+        model.addAttribute("totalPages",    totalPages);
 
         return "post";
     }
+
 
     /**
      * Hiển thị trang Profile

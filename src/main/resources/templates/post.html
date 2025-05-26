@@ -248,6 +248,25 @@
           <a th:href="@{/posts/new}" class="btn btn-primary">Write Your First Post</a>
         </div>
       </div>
+      
+      <div class="mt-4 d-flex justify-content-center">
+  <nav th:if="${totalPages > 1}">
+    <ul class="pagination pagination-dark">
+      <li class="page-item" th:if="${currentPage > 0}">
+        <a class="page-link" th:href="@{|/post?page=${currentPage - 1}&status=${status}&category=${categoryId}&sort=${sort}|}">&laquo;</a>
+      </li>
+      <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+          th:classappend="${i == currentPage} ? 'active'">
+        <a class="page-link" th:href="@{|/post?page=${i}&status=${status}&category=${categoryId}&sort=${sort}|}" th:text="${i + 1}"></a>
+      </li>
+      <li class="page-item" th:if="${currentPage < totalPages - 1}">
+        <a class="page-link" th:href="@{|/post?page=${currentPage + 1}&status=${status}&category=${categoryId}&sort=${sort}|}">&raquo;</a>
+      </li>
+    </ul>
+  </nav>
+</div>
+      
+      
     </div>
   </section>
 </main>
