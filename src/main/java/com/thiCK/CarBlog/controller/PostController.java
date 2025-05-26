@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -105,10 +106,20 @@ public class PostController {
         if (opt.isEmpty()) {
             return "redirect:/posts/";
         }
+
         Post post = opt.get();
         model.addAttribute("post", post);
         model.addAttribute("categories", categoryService.findAll());
         model.addAttribute("newComment", new Comment());
+
+        // Lấy related posts
+        List<Post> relatedPosts = postService.findTop5ByCategoryAndNotId(
+            post.getCategory().getCategoryId(),
+            post.getPostId()
+        );
+        model.addAttribute("relatedPosts", relatedPosts);
+
         return "post_detail";
     }
+
 }

@@ -180,4 +180,9 @@ public class PostService {
     public List<Post> searchByPrefix(String keyword) {
         return postRepo.findByTitleStartingWithIgnoreCase(keyword);
     }
+    
+    public List<Post> findTop5ByCategoryAndNotId(Integer categoryId, Integer postId) {
+        return postRepo.findTop5ByCategory_CategoryIdAndPostIdNotOrderByCreatedAtDesc(categoryId, postId);
+    }
+
 }
