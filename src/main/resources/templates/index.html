@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CarBlog – Your Automotive Resource</title>
+  <meta name="description" content="The latest car reviews, news, and automotive content">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+        crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <script src="https://cdn.jsdelivr.net/npm/countup.js@2.0.7/dist/countUp.umd.min.js"></script>
+  <script>
+  if (window.countUp && window.countUp.CountUp) {
+    // expose ra global để dùng new CountUp(...)
+    window.CountUp = window.countUp.CountUp;
+  }
+</script>
+
+
+
+</head>
+<body>
+  <!-- Header/Navigation -->
+  <nav class="navbar navbar-expand-lg fixed-top navbar-dark shadow-sm">
+  	<div class="container">
+	    <a th:href="@{/}" class="navbar-brand d-flex align-items-center">
+	      <i class="bi bi-car-front-fill text-danger me-2 fs-4"></i>
+	      <span class="gradient-text fw-bold">CarBlog</span>
+	    </a>
+	
+	    <button class="navbar-toggler" type="button"
+	            data-bs-toggle="collapse" data-bs-target="#navbarMain"
+	            aria-controls="navbarMain" aria-expanded="false"
+	            aria-label="Toggle navigation">
+	      <span class="navbar-toggler-icon"></span>
+	    </button>
+	
+	    <div class="collapse navbar-collapse" id="navbarMain">
+	      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+	        <li class="nav-item">
+	          <a th:href="@{/}" class="nav-link">Home</a>
+	        </li>
+	        <li class="nav-item dropdown">
+	          <a class="nav-link dropdown-toggle" href="#" role="button"
+	             data-bs-toggle="dropdown" aria-expanded="false">
+	            Categories
+	          </a>
+	          <ul class="dropdown-menu">
+	            <li><a th:href="@{/category/1}" class="dropdown-item">Reviews</a></li>
+	            <li><a th:href="@{/category/2}" class="dropdown-item">News</a></li>
+	            <li><a th:href="@{/category/3}" class="dropdown-item">Maintenance</a></li>
+	            <li><a th:href="@{/category/4}" class="dropdown-item">Modifications</a></li>
+	            <li><a th:href="@{/category/5}" class="dropdown-item">Classic Cars</a></li>
+	          </ul>
+	        </li>
+	        <li class="nav-item">
+	          <a th:href="@{/about}" class="nav-link">About</a>
+	        </li>
+	        <li class="nav-item">
+	          <a th:href="@{/contact}" class="nav-link">Contact</a>
+	        </li>
+	      </ul>
+	    <form class="position-relative" th:action="@{/}" method="get" style="width: 300px;">
+	      <input type="search"
+	             name="keyword"
+	             class="form-control rounded-pill"
+	             th:value="${keyword}"
+	             placeholder="Tìm bài viết…"
+	             aria-label="Search">
+	      <button type="submit" class="btn btn-link position-absolute top-50 end-0 translate-middle-y me-2">
+	        <i class="bi bi-search"></i>
+	      </button>
+	      <!-- Container hiển thị kết quả live-search -->
+	      <div id="searchResults"
+	           class="list-group position-absolute w-100 mt-1"
+	           style="z-index: 1000;"></div>
+	    </form>
+	      <div class="d-flex align-items-center">
+	        <!-- nút tìm kiếm mobile -->
+	        <button class="btn btn-link text-light me-2 d-md-none">
+	          <i class="bi bi-search"></i>
+	        </button>
+	
+	        <!-- Khi chưa đăng nhập -->
+	      <div class="d-flex align-items-center">
+	        <!-- Nếu chưa đăng nhập -->
+	        <div th:if="${session.currentUser == null}">
+	          <a th:href="@{/login}"
+	             class="btn btn-primary me-2">
+	            Đăng nhập
+	          </a>
+	          <a th:href="@{/register}"
+	             class="btn btn-primary">
+	            Đăng ký
+	          </a>
+	        </div>
+	
+	        <!-- Khi đã đăng nhập -->
+	        <div th:if="${session.currentUser != null}" class="d-flex align-items-center">
+	          <a href="/posts/create"
+	             class="btn btn-primary ms-3 me-3 d-none d-md-block">
+	            Viết bài
+	          </a>
+	          <div class="dropdown">
+	            <button class="btn btn-link text-light dropdown-toggle"
+	                    type="button" id="userDropdown"
+	                    data-bs-toggle="dropdown" aria-expanded="false">
+	              <i class="bi bi-person-circle"></i>
+	            </button>
+	            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+	              <li><h6 class="dropdown-header"
+	                      th:text="${session.currentUser.fullName}">User</h6></li>
+	              <li><a th:href="@{/profile}"       class="dropdown-item">Profile</a></li>
+	              <li><a th:href="@{/post}"  class="dropdown-item">My Posts</a></li>
+	              <li><a th:href="@{/users/comments}" class="dropdown-item">My Comments</a></li>
+	              <li><hr class="dropdown-divider"></li>
+	              <li><a th:href="@{/logout}" class="dropdown-item">Đăng xuất</a></li>
+	            </ul>
+	          </div>
+	        </div>
+	      </div>
+	    </div>
+	  </div>
+  </div>
+</nav>
+
+<main class="flex-grow-1 pt-5 mt-4">
+  <section class="py-5 py-md-7 hero-pattern">
+    <div class="container py-4">
+      <div class="row g-4">
+        <div class="col-lg-8">
+          <div class="card dark-card shine-effect" th:if="${posts != null and posts.size() > 0 and posts[0].category != null and posts[0].user != null}">
+            <div class="position-relative">
+              <a th:href="@{'/posts/' + ${posts[0].postId}}">
+                <img th:src="@{/uploads/post/{f}(f=${posts[0].mainImage})}"
+         			class="card-img-top"
+         			th:alt="${posts[0].title}" />              </a>
+              <div class="featured-gradient position-absolute top-0 start-0 w-100 h-100"></div>
+            </div>
+            <div class="card-body">
+              <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                <span class="badge badge-featured">Featured</span>
+                <span class="category-badge" th:text="${posts[0].category.name}">Category</span>
+                <div class="small text-muted d-flex align-items-center">
+                  <i class="bi bi-calendar3 me-1"></i>
+                  <span th:text="${#temporals.format(posts[0].createdAt,'dd MMM, yyyy')}"></span>
+                </div>
+              </div>
+              <h2 class="card-title fs-1 fw-bold mb-3 gradient-text">
+                <a th:href="@{'/posts/' + ${posts[0].postId}}" th:text="${posts[0].title}" class="text-decoration-none text-white"></a>
+              </h2>
+              <p class="card-text text-muted fs-5 mb-4" th:text="${posts[0].excerpt}"></p>
+              <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi bi-person-circle fs-3 text-primary"></i>
+                  <div>
+                    <div class="fw-medium" th:text="${posts[0].user.fullName}"></div>
+                    <div class="small text-muted" th:text="${posts[0].user.role}"></div>
+                  </div>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                  <a th:href="@{'/posts/' + ${posts[0].postId}}" class="btn btn-primary">Read More</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+          <!-- Sidebar -->
+          <div class="col-lg-4">
+            <div class="d-flex flex-column gap-4">
+              <!-- Categories Card -->
+              <div class="card dark-card">
+                <div class="card-header dark-gradient-blue border-bottom border-dark">
+                  <h3 class="card-title mb-0 text-white">Categories</h3>
+                </div>
+                <div class="card-body">
+                  <div class="d-grid gap-2">
+                    <a th:each="c: ${categories}"
+                        th:href="@{/category/{id}(id=${c.categoryId})}"
+                       class="d-flex align-items-center gap-2 text-muted text-decoration-none">
+                      <i class="bi bi-collection"></i>
+                      <div class="category-badge d-flex align-items-center justify-content-between w-100">
+                        <span th:text="${c.name}">Name</span>
+                        <span class="badge rounded-pill bg-dark ms-2"
+      						th:text="${#lists.size(c.posts)}">0</span>
+
+                      </div>
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <!-- Newsletter Signup -->
+              <div class="card dark-card">
+                <div class="card-body">
+                  <h3 class="card-title gradient-text">Subscribe to Our Newsletter</h3>
+                  <p class="card-text text-muted small mb-3">
+                    Get the latest automotive news and reviews delivered to your inbox.
+                  </p>
+                  <form th:action="@{/subscribe}" method="post">
+                    <div class="input-group">
+                      <input type="email" name="email" class="form-control" placeholder="Your email address" required>
+                      <button class="btn btn-primary" type="submit">Subscribe</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+      </div>
+    </div>
+  </section>
+  <!-- Latest Articles -->
+  <section class="py-5 py-md-7 dark-section">
+    <div class="container py-4">
+      <h2 class="fs-1 fw-bold gradient-text mb-4">Latest Articles</h2>
+      <div class="row g-4">
+        <div class="col-sm-6 col-lg-4" th:each="post : ${posts}">
+          <div class="card dark-card h-100 card-hover-effect">
+            <div class="position-relative">
+              <a th:href="@{'/posts/' + ${post.postId}}">
+				<img th:src="@{/uploads/post/{file}(file=${post.mainImage})}"
+				     th:alt="${post.title}"
+				     class="card-img-top"/>
+               </a>
+              <div class="position-absolute top-0 end-0 m-2">
+                <span class="category-badge" th:text="${post.category.name}">Category</span>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="d-flex align-items-center gap-2 mb-2 small text-muted">
+                <i class="bi bi-calendar3"></i>
+                <span th:text="${#temporals.format(post.createdAt, 'dd MMM yyyy')}">Date</span>
+              </div>
+              <h3 class="card-title fs-5 fw-bold mb-2">
+                <a th:href="@{'/posts/' + ${post.postId}}" class="text-decoration-none text-light" th:text="${post.title}"></a>
+              </h3>
+              <p class="card-text text-muted" th:text="${post.excerpt}"></p>
+            </div>
+            <div class="card-footer bg-transparent border-top border-dark d-flex justify-content-between">
+              <div class="d-flex align-items-center gap-1 small text-muted">
+                <i class="bi bi-person"></i>
+                <span th:text="${post.user.fullName}">Author</span>
+              </div>
+              <div class="d-flex align-items-center gap-1 small text-muted">
+                <i class="bi bi-chat"></i>
+                <span th:text="${#lists.size(post.comments)}">0</span> comments
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Car Stats Section -->
+<section class="py-5 py-md-7 stats-section text-white">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="fs-1 fw-bold mb-3">Automotive Excellence by the Numbers</h2>
+      <p class="text-white-50 mx-auto" style="max-width: 700px;">
+        Our team of experts has tested and reviewed hundreds of vehicles to bring you the most comprehensive
+        automotive content.
+      </p>
+    </div>
+    <div class="row g-4 text-center">
+      <div class="col-6 col-md-3">
+        <!-- ban đầu để 0, sẽ được CountUp cập nhật -->
+        <div id="carsReviewed" class="gradient-text display-4 fw-bold mb-2">0</div>
+        <div class="text-white-50">Cars Reviewed</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div id="milesDriven" class="gradient-text display-4 fw-bold mb-2">0</div>
+        <div class="text-white-50">Miles Driven</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div id="brandsCovered" class="gradient-text display-4 fw-bold mb-2">0</div>
+        <div class="text-white-50">Brands Covered</div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div id="averageRating" class="gradient-text display-4 fw-bold mb-2">0</div>
+        <div class="text-white-50">Average Rating</div>
+      </div>
+    </div>
+  </div>
+</section>
+  
+  <!-- Featured Categories -->
+<section class="py-5 py-md-7 bg-dark">
+  <div class="container">
+    <h2 class="text-center fs-1 fw-bold mb-5 gradient-text">Explore by Category</h2>
+    <div class="row g-4">
+      <!-- lặp qua featuredCategories -->
+      <div th:each="c : ${featuredCategories}" class="col-md-6 col-lg-3">
+        <a th:href="@{/category/{id}(id=${c.categoryId})}" class="text-decoration-none">
+          <div class="card dark-card h-100 card-hover-effect">
+            <div class="position-relative" style="height: 160px;">
+              <!-- Ảnh placeholder dynamic -->
+              <img th:src="@{'https://placehold.co/400x200/212529/FFFFFF/png?text=' + ${c.name}}"
+                   th:alt="${c.name}"
+                   class="img-fluid h-100 w-100 object-fit-cover"/>
+              <div class="category-overlay"
+                   th:classappend="' category-overlay-' + ${c.name.toLowerCase().replaceAll(' ', '-')}">
+                <div class="p-3">
+                  <h3 class="fs-4 fw-bold text-white mb-1" th:text="${c.name}">Category</h3>
+                  <p class="text-white-50 small"
+                     th:text="'Có ' + ${#lists.size(c.posts)} + ' bài viết'">
+                    Description
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="card-body d-flex justify-content-between align-items-center">
+              <span class="small text-muted"
+                    th:text="${#lists.size(c.posts)} + ' articles'">0 articles</span>
+              <i class="bi bi-chevron-right text-primary"></i>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+  
+</main>
+
+<!-- Footer -->
+  <footer class="footer-dark py-5 bg-dark">
+    <div class="container">
+      <div class="row g-4 mb-4">
+        <div class="col-lg-4 mb-4 mb-lg-0">
+          <div class="d-flex align-items-center mb-3">
+            <i class="bi bi-car-front-fill text-danger me-2 fs-4"></i>
+            <span class="gradient-text fw-bold fs-4">CarBlog</span>
+          </div>
+          <p class="text-muted small">
+            Your trusted source for car reviews, news, maintenance tips, and everything automotive. Driving the future
+            of automotive content since 2020.
+          </p>
+          <div class="d-flex gap-3 mt-3">
+            <a href="#" class="text-muted text-decoration-none"><i class="bi bi-facebook fs-5"></i></a>
+            <a href="#" class="text-muted text-decoration-none"><i class="bi bi-twitter-x fs-5"></i></a>
+            <a href="#" class="text-muted text-decoration-none"><i class="bi bi-instagram fs-5"></i></a>
+            <a href="#" class="text-muted text-decoration-none"><i class="bi bi-youtube fs-5"></i></a>
+          </div>
+        </div>
+        <div class="col-sm-6 col-md-4 col-lg-2">
+          <h5 class="gradient-text mb-3">Categories</h5>
+          <ul class="nav flex-column">
+            <li class="nav-item" th:each="c: ${categories}">
+              <a th:href="@{/category/{id}(id=${c.categoryId})}"
+                 class="nav-link text-muted p-0 mb-2"
+                 th:text="${c.name}"></a>
+            </li>
+          </ul>
+        </div>
+        <div class="col-sm-6 col-md-4 col-lg-2">
+          <h5 class="gradient-text mb-3">Quick Links</h5>
+          <ul class="nav flex-column">
+            <li class="nav-item"><a th:href="@{/about}" class="nav-link text-muted p-0 mb-2">About Us</a></li>
+            <li class="nav-item"><a th:href="@{/contact}" class="nav-link text-muted p-0 mb-2">Contact</a></li>
+            <li class="nav-item"><a th:href="@{/privacy-policy}" class="nav-link text-muted p-0 mb-2">Privacy Policy</a></li>
+            <li class="nav-item"><a th:href="@{/terms}" class="nav-link text-muted p-0 mb-2">Terms of Service</a></li>
+            <li class="nav-item"><a th:href="@{/sitemap}" class="nav-link text-muted p-0 mb-2">Sitemap</a></li>
+          </ul>
+        </div>
+        <div class="col-md-4 col-lg-4">
+          <h5 class="gradient-text mb-3">Contact Us</h5>
+          <ul class="list-unstyled text-muted small">
+            <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-geo-alt text-danger"></i> Nha Trang University</li>
+            <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-telephone text-success"></i> 0936841458</li>
+            <li class="d-flex align-items-center gap-2 mb-3"><i class="bi bi-envelope text-primary"></i> khanh.nn.64cntt@ntu.edu.vn</li>
+          </ul>
+          <h5 class="gradient-text mb-3">Subscribe</h5>
+          <form th:action="@{/subscribe}" method="post" class="d-flex gap-2 mt-2">
+            <input type="email" name="email" class="form-control" placeholder="Your email" required>
+            <button type="submit" class="btn btn-primary">Subscribe</button>
+          </form>
+        </div>
+      </div>
+      <div class="border-top border-dark pt-4 text-center text-muted small">
+        © 2025 CarBlog. All rights reserved. Designed with ❤️ for car enthusiasts.
+      </div>
+    </div>
+  </footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
+<!-- Script khởi tạo CountUp -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const stats = [
+      { id: 'carsReviewed',  endVal: 127 },
+      { id: 'milesDriven',   endVal: 15000 },
+      { id: 'brandsCovered', endVal: 42 },
+      { id: 'averageRating', endVal: 8.7, decimals: 1 }
+    ];
+    stats.forEach(({id, endVal, decimals, suffix}) => {
+      const opts = {};
+      if (decimals !== undefined) opts.decimals = decimals;
+      if (suffix   !== undefined) opts.suffix   = suffix;
+      const demo = new CountUp(id, endVal, opts);
+      if (!demo.error) demo.start();
+      else console.error(demo.error);
+    });
+  });
+</script>
+<!-- Script tìm kiếm -->
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const input = document.querySelector('input[name="keyword"]');
+    const results = document.getElementById('searchResults');
+    let timer;
+
+    input.addEventListener('keyup', function(e) {
+      clearTimeout(timer);
+      const q = e.target.value.trim();
+      timer = setTimeout(() => {
+        if (q.length > 0) {
+          fetch(`/search?keyword=${encodeURIComponent(q)}`)
+            .then(res => res.json())
+            .then(data => {
+              results.innerHTML = data.map(item => `
+                <a href="/posts/${item.id}"
+                   class="list-group-item list-group-item-action d-flex align-items-center">
+                  <img src="${item.image}"
+                       alt="thumb"
+                       class="rounded me-2"
+                       style="width:40px; height:30px; object-fit:cover;">
+                  <span>${item.title}</span>
+                </a>
+              `).join('');
+            });
+        } else {
+          results.innerHTML = '';
+        }
+      }, 300);
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!input.contains(e.target)) {
+        results.innerHTML = '';
+      }
+    });
+  });
+</script>
+</body>
+</html>

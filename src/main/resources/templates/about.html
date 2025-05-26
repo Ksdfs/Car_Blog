@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Us – CarBlog</title>
+  <meta name="description" content="Learn about CarBlog's mission, team, and commitment to providing the best automotive content and reviews">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+        crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+  <!-- Header/Navigation -->
+  <nav class="navbar navbar-expand-lg fixed-top navbar-dark shadow-sm">
+  	<div class="container">
+	    <a th:href="@{/}" class="navbar-brand d-flex align-items-center">
+	      <i class="bi bi-car-front-fill text-danger me-2 fs-4"></i>
+	      <span class="gradient-text fw-bold">CarBlog</span>
+	    </a>
+	
+	    <button class="navbar-toggler" type="button"
+	            data-bs-toggle="collapse" data-bs-target="#navbarMain"
+	            aria-controls="navbarMain" aria-expanded="false"
+	            aria-label="Toggle navigation">
+	      <span class="navbar-toggler-icon"></span>
+	    </button>
+	
+	    <div class="collapse navbar-collapse" id="navbarMain">
+	      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+	        <li class="nav-item">
+	          <a th:href="@{/}" class="nav-link">Home</a>
+	        </li>
+	        <li class="nav-item dropdown">
+	          <a class="nav-link dropdown-toggle" href="#" role="button"
+	             data-bs-toggle="dropdown" aria-expanded="false">
+	            Categories
+	          </a>
+	          <ul class="dropdown-menu">
+	            <li><a th:href="@{/category/1}" class="dropdown-item">Reviews</a></li>
+	            <li><a th:href="@{/category/2}" class="dropdown-item">News</a></li>
+	            <li><a th:href="@{/category/3}" class="dropdown-item">Maintenance</a></li>
+	            <li><a th:href="@{/category/4}" class="dropdown-item">Modifications</a></li>
+	            <li><a th:href="@{/category/5}" class="dropdown-item">Classic Cars</a></li>
+	          </ul>
+	        </li>
+	        <li class="nav-item">
+	          <a th:href="@{/about}" class="nav-link">About</a>
+	        </li>
+	        <li class="nav-item">
+	          <a th:href="@{/contact}" class="nav-link">Contact</a>
+	        </li>
+	      </ul>
+	    <form class="position-relative" th:action="@{/}" method="get" style="width: 300px;">
+	      <input type="search"
+	             name="keyword"
+	             class="form-control rounded-pill"
+	             th:value="${keyword}"
+	             placeholder="Tìm bài viết…"
+	             aria-label="Search">
+	      <button type="submit" class="btn btn-link position-absolute top-50 end-0 translate-middle-y me-2">
+	        <i class="bi bi-search"></i>
+	      </button>
+	      <!-- Container hiển thị kết quả live-search -->
+	      <div id="searchResults"
+	           class="list-group position-absolute w-100 mt-1"
+	           style="z-index: 1000;"></div>
+	    </form>
+	      <div class="d-flex align-items-center">
+	        <!-- nút tìm kiếm mobile -->
+	        <button class="btn btn-link text-light me-2 d-md-none">
+	          <i class="bi bi-search"></i>
+	        </button>
+	
+	        <!-- Khi chưa đăng nhập -->
+	      <div class="d-flex align-items-center">
+	        <!-- Nếu chưa đăng nhập -->
+	        <div th:if="${session.currentUser == null}">
+	          <a th:href="@{/login}"
+	             class="btn btn-primary me-2">
+	            Đăng nhập
+	          </a>
+	          <a th:href="@{/register}"
+	             class="btn btn-primary">
+	            Đăng ký
+	          </a>
+	        </div>
+	
+	        <!-- Khi đã đăng nhập -->
+	        <div th:if="${session.currentUser != null}" class="d-flex align-items-center">
+	          <a href="/posts/create"
+	             class="btn btn-primary ms-3 me-3 d-none d-md-block">
+	            Viết bài
+	          </a>
+	          <div class="dropdown">
+	            <button class="btn btn-link text-light dropdown-toggle"
+	                    type="button" id="userDropdown"
+	                    data-bs-toggle="dropdown" aria-expanded="false">
+	              <i class="bi bi-person-circle"></i>
+	            </button>
+	            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+	              <li><h6 class="dropdown-header"
+	                      th:text="${session.currentUser.fullName}">User</h6></li>
+	              <li><a th:href="@{/profile}"       class="dropdown-item">Profile</a></li>
+	              <li><a th:href="@{/post}"  class="dropdown-item">My Posts</a></li>
+	              <li><a th:href="@{/users/comments}" class="dropdown-item">My Comments</a></li>
+	              <li><hr class="dropdown-divider"></li>
+	              <li><a th:href="@{/logout}" class="dropdown-item">Đăng xuất</a></li>
+	            </ul>
+	          </div>
+	        </div>
+	      </div>
+	    </div>
+	  </div>
+  </div>
+</nav>
+
+  <main class="flex-grow-1 pt-5 mt-4">
+    <!-- Hero Section -->
+    <section class="py-5 py-md-7 hero-pattern">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-lg-6">
+            <h1 class="fs-1 fw-bold gradient-text mb-4">About CarBlog</h1>
+            <p class="text-muted fs-5 mb-4">
+              Nguồn đáng tin cậy của bạn về sự xuất sắc của ô tô. Chúng tôi đam mê ô tô và cam kết mang đến cho bạn nội dung ô tô toàn diện, trung thực và hấp dẫn nhất trên web.
+            </p>
+            <div class="d-flex flex-wrap gap-3 mb-4">
+              <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-calendar3 text-primary"></i>
+                <span class="text-muted">Est. 2020</span>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-people text-success"></i>
+                <span class="text-muted">10+ Các nhà văn chuyên gia</span>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-file-text text-warning"></i>
+                <span class="text-muted">500+ Bài viết</span>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-globe text-info"></i>
+                <span class="text-muted">Cộng đồng toàn cầu</span>
+              </div>
+            </div>
+            <div class="d-flex gap-3">
+              <a th:href="@{/contact}" class="btn btn-primary">Liên hệ</a>
+              <a th:href="@{/}" class="btn btn-outline-primary">Đọc bài viết của chúng tôi</a>
+            </div>
+          </div>
+          <div class="col-lg-6 text-center">
+            <div class="position-relative">
+              <img src="https://i.ytimg.com/vi/na1FQdmAXM4/maxresdefault.jpg" 
+                   class="img-fluid rounded-3 shadow-lg" 
+                   alt="CarBlog Team">
+              <div class="position-absolute top-0 start-0 w-100 h-100 bg-gradient rounded-3" style="opacity: 0.1;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mission & Vision Section -->
+    <section class="py-5 py-md-7 dark-section">
+      <div class="container">
+        <div class="row g-5">
+          <div class="col-lg-6">
+            <div class="card dark-card h-100">
+              <div class="card-body p-5">
+                <div class="text-center mb-4">
+                  <i class="bi bi-bullseye text-primary" style="font-size: 3rem;"></i>
+                </div>
+                <h2 class="fs-3 fw-bold gradient-text text-center mb-4">Sứ mệnh của chúng tôi</h2>
+                <p class="text-muted text-center mb-4">
+                  Dân chủ hóa kiến ​​thức về ô tô bằng cách cung cấp nội dung dễ tiếp cận, chính xác và hấp dẫn giúp những người đam mê ô tô, người mua và chủ sở hữu ô tô đưa ra quyết định sáng suốt về hành trình lái xe của mình.
+                </p>
+                <ul class="list-unstyled">
+                  <li class="d-flex align-items-center gap-2 mb-2">
+                    <i class="bi bi-check-circle text-success"></i>
+                    <span class="text-muted">Đánh giá trung thực và khách quan</span>
+                  </li>
+                  <li class="d-flex align-items-center gap-2 mb-2">
+                    <i class="bi bi-check-circle text-success"></i>
+                    <span class="text-muted">Thông tin chuyên sâu về ô tô</span>
+                  </li>
+                  <li class="d-flex align-items-center gap-2 mb-2">
+                    <i class="bi bi-check-circle text-success"></i>
+                    <span class="text-muted">Nội dung do cộng đồng thúc đẩy</span>
+                  </li>
+                  <li class="d-flex align-items-center gap-2">
+                    <i class="bi bi-check-circle text-success"></i>
+                    <span class="text-muted">Tin tức ô tô mới nhất</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="card dark-card h-100">
+              <div class="card-body p-5">
+                <div class="text-center mb-4">
+                  <i class="bi bi-eye text-warning" style="font-size: 3rem;"></i>
+                </div>
+                <h2 class="fs-3 fw-bold gradient-text text-center mb-4">Tầm nhìn của chúng tôi</h2>
+                <p class="text-muted text-center mb-4">
+                  Trở thành nền tảng ô tô đáng tin cậy nhất thế giới, nơi đam mê gặp gỡ chuyên môn và nơi mọi người đam mê ô tô đều tìm thấy ngôi nhà của mình trong cộng đồng sôi động của chúng tôi.
+                </p>
+                <ul class="list-unstyled">
+                  <li class="d-flex align-items-center gap-2 mb-2">
+                    <i class="bi bi-star text-warning"></i>
+                    <span class="text-muted">Cơ quan ô tô toàn cầu</span>
+                  </li>
+                  <li class="d-flex align-items-center gap-2 mb-2">
+                    <i class="bi bi-star text-warning"></i>
+                    <span class="text-muted">Đổi mới trong việc cung cấp nội dung</span>
+                  </li>
+                  <li class="d-flex align-items-center gap-2 mb-2">
+                    <i class="bi bi-star text-warning"></i>
+                    <span class="text-muted">Tương lai ô tô bền vững</span>
+                  </li>
+                  <li class="d-flex align-items-center gap-2">
+                    <i class="bi bi-star text-warning"></i>
+                    <span class="text-muted">Cộng đồng xe kết nối</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Our Story Section -->
+    <section class="py-5 py-md-7">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-lg-6 order-lg-2">
+            <img src="https://blog.feedspot.com/wp-content/uploads/2017/09/Luxury-Car-Blogs.jpg" 
+                 class="img-fluid rounded-3 shadow-lg" 
+                 alt="Our Story">
+          </div>
+          <div class="col-lg-6 order-lg-1">
+            <h2 class="fs-2 fw-bold gradient-text mb-4">Our Story</h2>
+            <p class="text-muted mb-4">
+              CarBlog ra đời vào năm 2025 từ một ý tưởng đơn giản: thế giới ô tô cần một nền tảng kết hợp giữa đam mê với chuyên môn, nơi những người đam mê ô tô có thể tìm thấy thông tin đáng tin cậy mà không bị làm phiền.
+            </p>
+            <p class="text-muted mb-4">
+              Được thành lập bởi một nhóm các nhà báo và kỹ sư ô tô đến từ Đại học Nha Trang, chúng tôi bắt đầu với sứ mệnh thu hẹp khoảng cách giữa công nghệ ô tô phức tạp và những người sở hữu xe hơi thông thường.
+            </p>
+            <div class="row g-4 mb-4">
+              <div class="col-6">
+                <div class="text-center">
+                  <div class="fs-2 fw-bold text-primary">500+</div>
+                  <div class="small text-muted">Bài viết đã xuất bản</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="text-center">
+                  <div class="fs-2 fw-bold text-success">50K+</div>
+                  <div class="small text-muted">Độc giả hàng tháng</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="text-center">
+                  <div class="fs-2 fw-bold text-warning">100+</div>
+                  <div class="small text-muted">Đánh giá xe</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="text-center">
+                  <div class="fs-2 fw-bold text-info">25+</div>
+                  <div class="small text-muted">Đối tác thương hiệu</div>
+                </div>
+              </div>
+            </div>
+            <p class="text-muted">
+              Ngày nay, chúng tôi tự hào là nền tảng nội dung ô tô hàng đầu Việt Nam, được hàng nghìn người đam mê ô tô, người mua và chuyên gia trong ngành tin tưởng.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Team Section -->
+<!-- Team Section -->
+    <section class="py-5 py-md-7 dark-section">
+      <div class="container">
+        <div class="text-center mb-5">
+          <h2 class="fs-2 fw-bold gradient-text mb-3">Gặp gỡ đội ngũ của chúng tôi</h2>
+          <p class="text-muted fs-5">Các chuyên gia nhiệt huyết đằng sau thành công của CarBlog</p>
+        </div>
+        <div class="row justify-content-center">
+          <!-- Team Member - Khanh Nguyen -->
+          <div class="col-md-6 col-lg-4">
+            <div class="card dark-card h-100 text-center card-hover-effect">
+              <div class="card-body p-4">
+                <div class="position-relative d-inline-block mb-3">
+                  <img src="https://placehold.co/120x120/212529/FFFFFF/png?text=KN" 
+                       class="rounded-circle border border-3 border-primary" 
+                       style="width: 120px; height: 120px; object-fit: cover;"
+                       alt="Khanh Nguyen">
+                </div>
+                <h4 class="fs-5 fw-bold text-white mb-1">Khanh Nguyen</h4>
+                <p class="text-primary small mb-2">Founder & Editor-in-Chief</p>
+                <p class="text-muted small mb-3">
+                  Nhà báo ô tô và người sáng lập CarBlog. Sinh viên khoa học máy tính tại Đại học Nha Trang với niềm đam mê ô tô, công nghệ và tạo ra nội dung ô tô hấp dẫn cho cộng đồng người Việt.
+                </p>
+                <div class="d-flex justify-content-center gap-2">
+                  <a href="#" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-linkedin"></i>
+                  </a>
+                  <a href="#" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-twitter-x"></i>
+                  </a>
+                  <a href="mailto:khanh.nn.64cntt@ntu.edu.vn" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-envelope"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Values Section -->
+    <section class="py-5 py-md-7">
+      <div class="container">
+        <div class="text-center mb-5">
+          <h2 class="fs-2 fw-bold gradient-text mb-3">Giá trị của chúng tôi</h2>
+          <p class="text-muted fs-5">Các nguyên tắc hướng dẫn mọi thứ chúng ta làm</p>
+        </div>
+        <div class="row g-4">
+          <div class="col-md-6 col-lg-4">
+            <div class="card dark-card h-100 text-center">
+              <div class="card-body p-4">
+                <div class="mb-3">
+                  <i class="bi bi-shield-check text-primary" style="font-size: 3rem;"></i>
+                </div>
+                <h3 class="fs-5 fw-bold text-white mb-3">Chính trực</h3>
+                <p class="text-muted">
+                  Chúng tôi cung cấp các bài đánh giá và nội dung trung thực, khách quan. Sự tin tưởng của độc giả là tài sản giá trị nhất của chúng tôi.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="card dark-card h-100 text-center">
+              <div class="card-body p-4">
+                <div class="mb-3">
+                  <i class="bi bi-lightbulb text-warning" style="font-size: 3rem;"></i>
+                </div>
+                <h3 class="fs-5 fw-bold text-white mb-3">Sự đổi mới</h3>
+                <p class="text-muted">
+                  Chúng tôi áp dụng công nghệ mới và phương pháp sáng tạo để cung cấp nội dung ô tô tiên tiến.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="card dark-card h-100 text-center">
+              <div class="card-body p-4">
+                <div class="mb-3">
+                  <i class="bi bi-people text-success" style="font-size: 3rem;"></i>
+                </div>
+                <h3 class="fs-5 fw-bold text-white mb-3">Cộng đồng</h3>
+                <p class="text-muted">
+                  Chúng tôi xây dựng một cộng đồng thân thiện, nơi những người đam mê ô tô có thể học hỏi, chia sẻ và cùng nhau phát triển.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="card dark-card h-100 text-center">
+              <div class="card-body p-4">
+                <div class="mb-3">
+                  <i class="bi bi-award text-danger" style="font-size: 3rem;"></i>
+                </div>
+                <h3 class="fs-5 fw-bold text-white mb-3">Sự xuất sắc</h3>
+                <p class="text-muted">
+                  Chúng tôi nỗ lực đạt đến sự xuất sắc trong mọi bài viết, bài đánh giá và tương tác với cộng đồng.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="card dark-card h-100 text-center">
+              <div class="card-body p-4">
+                <div class="mb-3">
+                  <i class="bi bi-leaf text-success" style="font-size: 3rem;"></i>
+                </div>
+                <h3 class="fs-5 fw-bold text-white mb-3">Tính bền vững</h3>
+                <p class="text-muted">
+                  Chúng tôi thúc đẩy các hoạt động sản xuất ô tô bền vững và hỗ trợ quá trình chuyển đổi sang phương tiện giao thông sạch hơn.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="card dark-card h-100 text-center">
+              <div class="card-body p-4">
+                <div class="mb-3">
+                  <i class="bi bi-heart text-danger" style="font-size: 3rem;"></i>
+                </div>
+                <h3 class="fs-5 fw-bold text-white mb-3">Niềm đam mê</h3>
+                <p class="text-muted">
+                  Tình yêu của chúng tôi dành cho ô tô thúc đẩy mọi việc chúng tôi làm, từ các bài đánh giá chuyên sâu đến hoạt động gắn kết cộng đồng.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Awards & Recognition Section -->
+    <section class="py-5 py-md-7 dark-section">
+      <div class="container">
+        <div class="text-center mb-5">
+          <h2 class="fs-2 fw-bold gradient-text mb-3">Giải thưởng & Sự công nhận</h2>
+          <p class="text-muted fs-5">Được cộng đồng ô tô vinh danh</p>
+        </div>
+        <div class="row g-4">
+          <div class="col-md-6 col-lg-3">
+            <div class="card dark-card text-center">
+              <div class="card-body p-4">
+                <i class="bi bi-trophy text-warning mb-3" style="font-size: 3rem;"></i>
+                <h4 class="fs-6 fw-bold text-white mb-2">Blog ô tô tốt nhất</h4>
+                <p class="text-muted small">Giải thưởng số Việt Nam 2023</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-3">
+            <div class="card dark-card text-center">
+              <div class="card-body p-4">
+                <i class="bi bi-star text-primary mb-3" style="font-size: 3rem;"></i>
+                <h4 class="fs-6 fw-bold text-white mb-2">Sự xuất sắc trong nội dung</h4>
+                <p class="text-muted small">Giải thưởng truyền thông ô tô 2023</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-3">
+            <div class="card dark-card text-center">
+              <div class="card-body p-4">
+                <i class="bi bi-people text-success mb-3" style="font-size: 3rem;"></i>
+                <h4 class="fs-6 fw-bold text-white mb-2">Lựa chọn của cộng đồng</h4>
+                <p class="text-muted small">Giải thưởng Người đam mê xe hơi 2022</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-3">
+            <div class="card dark-card text-center">
+              <div class="card-body p-4">
+                <i class="bi bi-lightning text-warning mb-3" style="font-size: 3rem;"></i>
+                <h4 class="fs-6 fw-bold text-white mb-2">Ngôi sao đang lên</h4>
+                <p class="text-muted small">Digital Media Vietnam 2021</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Call to Action Section -->
+    <section class="py-5 py-md-7">
+      <div class="container">
+        <div class="card dark-card">
+          <div class="card-body p-5 text-center">
+            <h2 class="fs-2 fw-bold gradient-text mb-4">Tham gia cộng đồng của chúng tôi</h2>
+            <p class="text-muted fs-5 mb-4">
+              Hãy trở thành một phần của cộng đồng ô tô lớn nhất Việt Nam. Chia sẻ niềm đam mê của bạn, học hỏi từ các chuyên gia và kết nối với những người đam mê ô tô khác.
+            </p>
+            <div class="row g-4 mb-4">
+              <div class="col-md-3 col-6">
+                <div class="fs-3 fw-bold text-primary">50K+</div>
+                <div class="small text-muted">Thành viên cộng đồng</div>
+              </div>
+              <div class="col-md-3 col-6">
+                <div class="fs-3 fw-bold text-success">500+</div>
+                <div class="small text-muted">Bài viết đã xuất bản</div>
+              </div>
+              <div class="col-md-3 col-6">
+                <div class="fs-3 fw-bold text-warning">1M+</div>
+                <div class="small text-muted">Lượt xem trang hàng tháng</div>
+              </div>
+              <div class="col-md-3 col-6">
+                <div class="fs-3 fw-bold text-info">100+</div>
+                <div class="small text-muted">Những người đóng góp chuyên môn</div>
+              </div>
+            </div>
+            <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
+              <a th:href="@{/register}" class="btn btn-primary btn-lg">
+                <i class="bi bi-person-plus me-2"></i>Tham gia CarBlog
+              </a>
+              <a th:href="@{/contact}" class="btn btn-outline-primary btn-lg">
+                <i class="bi bi-envelope me-2"></i>Contact Us
+              </a>
+              <a th:href="@{/}" class="btn btn-outline-secondary btn-lg">
+                <i class="bi bi-house me-2"></i>Explore Articles
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+<!-- Footer -->
+  <footer class="footer-dark py-5 bg-dark">
+    <div class="container">
+      <div class="row g-4 mb-4">
+        <div class="col-lg-4 mb-4 mb-lg-0">
+          <div class="d-flex align-items-center mb-3">
+            <i class="bi bi-car-front-fill text-danger me-2 fs-4"></i>
+            <span class="gradient-text fw-bold fs-4">CarBlog</span>
+          </div>
+          <p class="text-muted small">
+            Your trusted source for car reviews, news, maintenance tips, and everything automotive. Driving the future
+            of automotive content since 2020.
+          </p>
+          <div class="d-flex gap-3 mt-3">
+            <a href="#" class="text-muted text-decoration-none"><i class="bi bi-facebook fs-5"></i></a>
+            <a href="#" class="text-muted text-decoration-none"><i class="bi bi-twitter-x fs-5"></i></a>
+            <a href="#" class="text-muted text-decoration-none"><i class="bi bi-instagram fs-5"></i></a>
+            <a href="#" class="text-muted text-decoration-none"><i class="bi bi-youtube fs-5"></i></a>
+          </div>
+        </div>
+        <div class="col-sm-6 col-md-4 col-lg-2">
+          <h5 class="gradient-text mb-3">Categories</h5>
+          <ul class="nav flex-column">
+            <li class="nav-item" th:each="c: ${categories}">
+              <a th:href="@{/category/{id}(id=${c.categoryId})}"
+                 class="nav-link text-muted p-0 mb-2"
+                 th:text="${c.name}"></a>
+            </li>
+          </ul>
+        </div>
+        <div class="col-sm-6 col-md-4 col-lg-2">
+          <h5 class="gradient-text mb-3">Quick Links</h5>
+          <ul class="nav flex-column">
+            <li class="nav-item"><a th:href="@{/about}" class="nav-link text-muted p-0 mb-2">About Us</a></li>
+            <li class="nav-item"><a th:href="@{/contact}" class="nav-link text-muted p-0 mb-2">Contact</a></li>
+            <li class="nav-item"><a th:href="@{/privacy-policy}" class="nav-link text-muted p-0 mb-2">Privacy Policy</a></li>
+            <li class="nav-item"><a th:href="@{/terms}" class="nav-link text-muted p-0 mb-2">Terms of Service</a></li>
+            <li class="nav-item"><a th:href="@{/sitemap}" class="nav-link text-muted p-0 mb-2">Sitemap</a></li>
+          </ul>
+        </div>
+        <div class="col-md-4 col-lg-4">
+          <h5 class="gradient-text mb-3">Contact Us</h5>
+          <ul class="list-unstyled text-muted small">
+            <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-geo-alt text-danger"></i> Nha Trang University</li>
+            <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-telephone text-success"></i> 0936841458</li>
+            <li class="d-flex align-items-center gap-2 mb-3"><i class="bi bi-envelope text-primary"></i> khanh.nn.64cntt@ntu.edu.vn</li>
+          </ul>
+          <h5 class="gradient-text mb-3">Subscribe</h5>
+          <form th:action="@{/subscribe}" method="post" class="d-flex gap-2 mt-2">
+            <input type="email" name="email" class="form-control" placeholder="Your email" required>
+            <button type="submit" class="btn btn-primary">Subscribe</button>
+          </form>
+        </div>
+      </div>
+      <div class="border-top border-dark pt-4 text-center text-muted small">
+        © 2025 CarBlog. All rights reserved. Designed with ❤️ for car enthusiasts.
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add smooth scrolling for anchor links
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute('href'));
+          if (target) {
+            target.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start'
+            });
+          }
+        });
+      });
+
+      // Add animation on scroll for cards
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      };
+
+      const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+          }
+        });
+      }, observerOptions);
+
+      // Observe all cards for animation
+      document.querySelectorAll('.card').forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(card);
+      });
+    });
+  </script>
+</body>
+</html>

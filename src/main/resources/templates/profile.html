@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile – CarBlog</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+  <!-- Header/Navigation -->
+  <nav class="navbar navbar-expand-lg fixed-top navbar-dark shadow-sm">
+  	<div class="container">
+	    <a th:href="@{/}" class="navbar-brand d-flex align-items-center">
+	      <i class="bi bi-car-front-fill text-danger me-2 fs-4"></i>
+	      <span class="gradient-text fw-bold">CarBlog</span>
+	    </a>
+	
+	    <button class="navbar-toggler" type="button"
+	            data-bs-toggle="collapse" data-bs-target="#navbarMain"
+	            aria-controls="navbarMain" aria-expanded="false"
+	            aria-label="Toggle navigation">
+	      <span class="navbar-toggler-icon"></span>
+	    </button>
+	
+	    <div class="collapse navbar-collapse" id="navbarMain">
+	      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+	        <li class="nav-item">
+	          <a th:href="@{/}" class="nav-link">Home</a>
+	        </li>
+	        <li class="nav-item dropdown">
+	          <a class="nav-link dropdown-toggle" href="#" role="button"
+	             data-bs-toggle="dropdown" aria-expanded="false">
+	            Categories
+	          </a>
+	          <ul class="dropdown-menu">
+	            <li><a th:href="@{/category/1}" class="dropdown-item">Reviews</a></li>
+	            <li><a th:href="@{/category/2}" class="dropdown-item">News</a></li>
+	            <li><a th:href="@{/category/3}" class="dropdown-item">Maintenance</a></li>
+	            <li><a th:href="@{/category/4}" class="dropdown-item">Modifications</a></li>
+	            <li><a th:href="@{/category/5}" class="dropdown-item">Classic Cars</a></li>
+	          </ul>
+	        </li>
+	        <li class="nav-item">
+	          <a th:href="@{/about}" class="nav-link">About</a>
+	        </li>
+	        <li class="nav-item">
+	          <a th:href="@{/contact}" class="nav-link">Contact</a>
+	        </li>
+	      </ul>
+	    <form class="position-relative" th:action="@{/}" method="get" style="width: 300px;">
+	      <input type="search"
+	             name="keyword"
+	             class="form-control rounded-pill"
+	             th:value="${keyword}"
+	             placeholder="Tìm bài viết…"
+	             aria-label="Search">
+	      <button type="submit" class="btn btn-link position-absolute top-50 end-0 translate-middle-y me-2">
+	        <i class="bi bi-search"></i>
+	      </button>
+	      <!-- Container hiển thị kết quả live-search -->
+	      <div id="searchResults"
+	           class="list-group position-absolute w-100 mt-1"
+	           style="z-index: 1000;"></div>
+	    </form>
+	      <div class="d-flex align-items-center">
+	        <!-- nút tìm kiếm mobile -->
+	        <button class="btn btn-link text-light me-2 d-md-none">
+	          <i class="bi bi-search"></i>
+	        </button>
+	
+	        <!-- Khi chưa đăng nhập -->
+	      <div class="d-flex align-items-center">
+	        <!-- Nếu chưa đăng nhập -->
+	        <div th:if="${session.currentUser == null}">
+	          <a th:href="@{/login}"
+	             class="btn btn-primary me-2">
+	            Đăng nhập
+	          </a>
+	          <a th:href="@{/register}"
+	             class="btn btn-primary">
+	            Đăng ký
+	          </a>
+	        </div>
+	
+	        <!-- Khi đã đăng nhập -->
+	        <div th:if="${session.currentUser != null}" class="d-flex align-items-center">
+	          <a href="/posts/create"
+	             class="btn btn-primary ms-3 me-3 d-none d-md-block">
+	            Viết bài
+	          </a>
+	          <div class="dropdown">
+	            <button class="btn btn-link text-light dropdown-toggle"
+	                    type="button" id="userDropdown"
+	                    data-bs-toggle="dropdown" aria-expanded="false">
+	              <i class="bi bi-person-circle"></i>
+	            </button>
+	            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+	              <li><h6 class="dropdown-header"
+	                      th:text="${session.currentUser.fullName}">User</h6></li>
+	              <li><a th:href="@{/profile}"       class="dropdown-item">Profile</a></li>
+	              <li><a th:href="@{/post}"  class="dropdown-item">My Posts</a></li>
+	              <li><a th:href="@{/users/comments}" class="dropdown-item">My Comments</a></li>
+	              <li><hr class="dropdown-divider"></li>
+	              <li><a th:href="@{/logout}" class="dropdown-item">Đăng xuất</a></li>
+	            </ul>
+	          </div>
+	        </div>
+	      </div>
+	    </div>
+	  </div>
+  </div>
+</nav>
+
+  <main class="flex-grow-1 pt-5 mt-4">
+    <!-- Page Header -->
+    <section class="py-5 hero-pattern">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-lg-8">
+            <h1 class="fs-1 fw-bold gradient-text mb-3">My Profile</h1>
+            <p class="text-muted fs-5 mb-4">Manage your personal information and account settings</p>
+          </div>
+          <div class="col-lg-4 text-lg-end">
+            <div class="d-flex gap-2 justify-content-lg-end">
+              <button class="btn btn-outline-primary" id="editProfileBtn">
+                <i class="bi bi-pencil me-2"></i>Edit Profile
+              </button>
+              <button class="btn btn-primary d-none" id="saveProfileBtn">
+                <i class="bi bi-check-lg me-2"></i>Save Changes
+              </button>
+              <button class="btn btn-secondary d-none" id="cancelEditBtn">
+                <i class="bi bi-x-lg me-2"></i>Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Profile Content -->
+<section class="py-5 dark-section">
+  <div class="container">
+    <div class="row g-4">
+      <!-- Profile Information -->
+      <div class="col-lg-8">
+        <div class="card dark-card mb-4">
+          <div class="card-header dark-gradient-blue border-bottom border-dark">
+            <h3 class="card-title mb-0 text-white">
+              <i class="bi bi-person me-2"></i>Personal Information
+            </h3>
+          </div>
+          <div class="card-body">
+            <!-- Form đã sửa -->
+            <form id="profileForm"
+                  th:action="@{/profile/update}"
+                  method="post"
+                  enctype="multipart/form-data">
+              <div class="row g-4">
+                <!-- Profile Picture -->
+                <div class="col-12 text-center">
+                  <div class="position-relative d-inline-block">
+					<img th:src="@{${currentUser.avatar} != null 
+					                ? ${currentUser.avatar} 
+					                : 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}"
+					     id="profileImage"
+					     class="rounded-circle"
+					     style="width:120px; height:120px; object-fit:cover;"
+					     alt="Default Avatar"/>
+
+					  <button
+					    type="button"
+					    id="changePhotoBtn"
+					    class="btn btn-primary btn-sm rounded-circle position-absolute bottom-0 end-0 d-none"
+					    style="width:35px; height:35px;"
+					    onclick="profilePictureInput.click()">
+					    <i class="bi bi-camera"></i>
+					  </button>
+				  <input
+				    type="file"
+				    id="profilePictureInput"
+				    name="avatar"
+				    accept="image/*"
+				    class="d-none">
+                  </div>
+                  <div class="mt-2">
+                    <h4 class="text-white mb-1"
+                        th:text="${currentUser.fullName}">Họ tên</h4>
+                    <p class="text-muted mb-0"
+                       th:text="${currentUser.role}">Role</p>
+                  </div>
+                </div>
+
+                <!-- Basic Information -->
+                <div class="col-md-6">
+                  <label for="fullName" class="form-label text-muted">Họ tên</label>
+                  <input type="text" class="form-control" id="fullName" name="fullName"
+                         th:value="${currentUser.fullName}">
+                </div>
+                <div class="col-md-6">
+                  <label for="username" class="form-label text-muted">Tài khoản</label>
+                  <input type="text" class="form-control" id="username" name="username"
+                         th:value="${currentUser.username}" readonly>
+                </div>
+                <div class="col-md-6">
+                  <label for="email" class="form-label text-muted">Email</label>
+                  <input type="email" class="form-control" id="email" name="email"
+                         th:value="${currentUser.email}" readonly>
+                </div>
+                <div class="col-md-6">
+                  <label for="phoneNumber" class="form-label text-muted">Số điện thoại</label>
+                  <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber"
+                         th:value="${currentUser.phoneNumber}">
+                </div>
+                <div class="col-md-6">
+                  <label for="birthDate" class="form-label text-muted">Ngày sinh</label>
+                  <input type="date" class="form-control" id="birthDate" name="birthDate"
+                         th:value="${currentUser.birthDate}">
+                </div>
+                <div class="col-md-6">
+                  <label for="gender" class="form-label text-muted">Giới tính</label>
+                  <select class="form-select" id="gender" name="gender">
+                    <option value="">Chọn Giới Tính</option>
+                    <option value="Nam" th:selected="${currentUser.gender == 'Nam'}">Nam</option>
+                    <option value="Nữ" th:selected="${currentUser.gender == 'Nữ'}">Nữ</option>
+                    <option value="Khác" th:selected="${currentUser.gender == 'Khác'}">Khác</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label for="bio" class="form-label text-muted">Bio</label>
+                  <textarea class="form-control" id="bio" name="bio" rows="4"
+                            placeholder="Tell us about yourself..."
+                            th:text="${currentUser.bio}"></textarea>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar vẫn giữ nguyên -->
+      <div class="col-lg-4">
+        <div class="d-flex flex-column gap-4">
+          <!-- Account Statistics -->
+          <div class="card dark-card">
+            <div class="card-header dark-gradient-blue border-bottom border-dark">
+              <h3 class="card-title mb-0 text-white">Account Statistics</h3>
+            </div>
+            <div class="card-body">
+              <div class="row g-3 text-center">
+                <div class="col-6">
+                  <div class="fs-3 fw-bold text-primary" th:text="${userStats.totalPosts}">12</div>
+                  <div class="small text-muted">Posts</div>
+                </div>
+                <div class="col-6">
+                  <div class="fs-3 fw-bold text-success" th:text="${userStats.totalViews}">1,234</div>
+                  <div class="small text-muted">Views</div>
+                </div>
+                <div class="col-6">
+                  <div class="fs-3 fw-bold text-warning" th:text="${userStats.totalComments}">89</div>
+                  <div class="small text-muted">Comments</div>
+                </div>
+                <div class="col-6">
+                  <div class="fs-3 fw-bold text-danger" th:text="${userStats.totalLikes}">456</div>
+                  <div class="small text-muted">Likes</div>
+                </div>
+              </div>
+              <hr class="border-dark">
+              <div class="text-center">
+                <div class="small text-muted">Member since</div>
+                <div class="fw-medium text-white"
+                     th:text="${#temporals.format(currentUser.createdAt, 'MMMM yyyy')}">
+                  January 2024
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- End Sidebar -->
+
+    </div>
+  </div>
+</section>
+
+  </main>
+  
+  <!-- Footer -->
+  <footer class="footer-dark py-5 bg-dark">
+    <div class="container">
+      <div class="row g-4 mb-4">
+        <div class="col-lg-4 mb-4 mb-lg-0">
+          <div class="d-flex align-items-center mb-3">
+            <i class="bi bi-car-front-fill text-danger me-2 fs-4"></i>
+            <span class="gradient-text fw-bold fs-4">CarBlog</span>
+          </div>
+          <p class="text-muted small">
+            Your trusted source for car reviews, news, maintenance tips, and everything automotive. Driving the future
+            of automotive content since 2020.
+          </p>
+          <div class="d-flex gap-3 mt-3">
+            <a href="#" class="text-muted text-decoration-none"><i class="bi bi-facebook fs-5"></i></a>
+            <a href="#" class="text-muted text-decoration-none"><i class="bi bi-twitter-x fs-5"></i></a>
+            <a href="#" class="text-muted text-decoration-none"><i class="bi bi-instagram fs-5"></i></a>
+            <a href="#" class="text-muted text-decoration-none"><i class="bi bi-youtube fs-5"></i></a>
+          </div>
+        </div>
+        <div class="col-sm-6 col-md-4 col-lg-2">
+          <h5 class="gradient-text mb-3">Categories</h5>
+          <ul class="nav flex-column">
+            <li class="nav-item" th:each="c: ${categories}">
+              <a th:href="@{/category/{id}(id=${c.categoryId})}"
+                 class="nav-link text-muted p-0 mb-2"
+                 th:text="${c.name}"></a>
+            </li>
+          </ul>
+        </div>
+        <div class="col-sm-6 col-md-4 col-lg-2">
+          <h5 class="gradient-text mb-3">Quick Links</h5>
+          <ul class="nav flex-column">
+            <li class="nav-item"><a th:href="@{/about}" class="nav-link text-muted p-0 mb-2">About Us</a></li>
+            <li class="nav-item"><a th:href="@{/contact}" class="nav-link text-muted p-0 mb-2">Contact</a></li>
+            <li class="nav-item"><a th:href="@{/privacy-policy}" class="nav-link text-muted p-0 mb-2">Privacy Policy</a></li>
+            <li class="nav-item"><a th:href="@{/terms}" class="nav-link text-muted p-0 mb-2">Terms of Service</a></li>
+            <li class="nav-item"><a th:href="@{/sitemap}" class="nav-link text-muted p-0 mb-2">Sitemap</a></li>
+          </ul>
+        </div>
+        <div class="col-md-4 col-lg-4">
+          <h5 class="gradient-text mb-3">Contact Us</h5>
+          <ul class="list-unstyled text-muted small">
+            <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-geo-alt text-danger"></i> Nha Trang University</li>
+            <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-telephone text-success"></i> 0936841458</li>
+            <li class="d-flex align-items-center gap-2 mb-3"><i class="bi bi-envelope text-primary"></i> khanh.nn.64cntt@ntu.edu.vn</li>
+          </ul>
+          <h5 class="gradient-text mb-3">Subscribe</h5>
+          <form th:action="@{/subscribe}" method="post" class="d-flex gap-2 mt-2">
+            <input type="email" name="email" class="form-control" placeholder="Your email" required>
+            <button type="submit" class="btn btn-primary">Subscribe</button>
+          </form>
+        </div>
+      </div>
+      <div class="border-top border-dark pt-4 text-center text-muted small">
+        © 2025 CarBlog. All rights reserved. Designed with ❤️ for car enthusiasts.
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const editBtn = document.getElementById('editProfileBtn');
+  const saveBtn = document.getElementById('saveProfileBtn');
+  const cancelBtn = document.getElementById('cancelEditBtn');
+  const changePhotoBtn = document.getElementById('changePhotoBtn');
+  const profilePictureInput = document.getElementById('profilePictureInput');
+  const profileImage = document.getElementById('profileImage');
+  const form = document.getElementById('profileForm');
+
+  let isEditing = false;
+  let originalFormData = new FormData(form);
+
+  // Nút Edit: chuyển sang chế độ chỉnh sửa
+  editBtn.addEventListener('click', function() {
+    toggleEditMode(true);
+  });
+
+  // Nút Cancel: quay về chế độ readonly, phục hồi dữ liệu cũ
+  cancelBtn.addEventListener('click', function() {
+    toggleEditMode(false);
+    restoreOriginalData();
+  });
+
+  // Nút Save: gửi form
+  saveBtn.addEventListener('click', function() {
+    // Debug: log tất cả các trường trước khi submit
+    const elements = form.querySelectorAll('input, textarea, select');
+    elements.forEach(el => {
+      console.log(el.name, el.value, "readonly:", el.readOnly, "disabled:", el.disabled);
+    });
+    form.submit();
+  });
+
+  // Chuyển đổi chế độ chỉnh sửa
+  function toggleEditMode(editing) {
+    isEditing = editing;
+    // input, textarea: chỉ dùng readonly
+    const inputs = form.querySelectorAll('input, textarea');
+    inputs.forEach(input => {
+      if (input.name !== "username" && input.name !== "email") {
+        input.readOnly = !editing;
+      }
+    });
+    // select: chỉ dùng disabled
+    const selects = form.querySelectorAll('select');
+    selects.forEach(select => {
+      select.disabled = !editing;
+    });
+
+    editBtn.classList.toggle('d-none', editing);
+    saveBtn.classList.toggle('d-none', !editing);
+    cancelBtn.classList.toggle('d-none', !editing);
+    changePhotoBtn.classList.toggle('d-none', !editing);
+  }
+
+  // Phục hồi lại dữ liệu ban đầu khi cancel
+  function restoreOriginalData() {
+    const inputs = form.querySelectorAll('input, textarea');
+    inputs.forEach(input => {
+      if (originalFormData.has(input.name)) {
+        input.value = originalFormData.get(input.name);
+      }
+      if (input.name !== "username" && input.name !== "email") {
+        input.readOnly = true;
+      }
+    });
+    const selects = form.querySelectorAll('select');
+    selects.forEach(select => {
+      if (originalFormData.has(select.name)) {
+        select.value = originalFormData.get(select.name);
+      }
+      select.disabled = true;
+    });
+  }
+
+  // Đổi avatar: xem trước ảnh vừa chọn
+  if (changePhotoBtn && profilePictureInput) {
+    changePhotoBtn.addEventListener('click', function() {
+      profilePictureInput.click();
+    });
+    profilePictureInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          profileImage.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  // Xóa tài khoản: xác nhận khi nhập "DELETE"
+  const deleteConfirmationInput = document.getElementById('deleteConfirmation');
+  const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+  if (deleteConfirmationInput && confirmDeleteBtn) {
+    deleteConfirmationInput.addEventListener('input', function() {
+      confirmDeleteBtn.disabled = this.value !== 'DELETE';
+    });
+    confirmDeleteBtn.addEventListener('click', function() {
+      // Bạn cần viết code xử lý xóa account ở backend
+      window.location.href = '/profile/delete-account';
+    });
+  }
+
+  // Validate đổi mật khẩu (nếu có modal đổi password)
+  const newPassword = document.getElementById('newPassword');
+  const confirmPassword = document.getElementById('confirmPassword');
+  function validatePasswords() {
+    if (newPassword.value !== confirmPassword.value) {
+      confirmPassword.setCustomValidity('Passwords do not match');
+    } else {
+      confirmPassword.setCustomValidity('');
+    }
+  }
+  if (newPassword && confirmPassword) {
+    newPassword.addEventListener('input', validatePasswords);
+    confirmPassword.addEventListener('input', validatePasswords);
+  }
+
+  // Khi vào trang sẽ ở chế độ readonly
+  toggleEditMode(false);
+});
+</script>
+
+</body>
+</html>

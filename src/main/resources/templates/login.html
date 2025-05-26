@@ -1,0 +1,183 @@
+<!-- src/main/resources/templates/login.html -->
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login – CarBlog</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="/styles.css" rel="stylesheet">
+</head>
+<body>
+  <!-- Header/Navigation -->
+<nav class="navbar navbar-expand-lg fixed-top navbar-dark shadow-sm">
+  	<div class="container">
+	    <a th:href="@{/}" class="navbar-brand d-flex align-items-center">
+	      <i class="bi bi-car-front-fill text-danger me-2 fs-4"></i>
+	      <span class="gradient-text fw-bold">CarBlog</span>
+	    </a>
+	
+	    <button class="navbar-toggler" type="button"
+	            data-bs-toggle="collapse" data-bs-target="#navbarMain"
+	            aria-controls="navbarMain" aria-expanded="false"
+	            aria-label="Toggle navigation">
+	      <span class="navbar-toggler-icon"></span>
+	    </button>
+	
+	    <div class="collapse navbar-collapse" id="navbarMain">
+	      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+	        <li class="nav-item">
+	          <a th:href="@{/}" class="nav-link">Home</a>
+	        </li>
+	        <li class="nav-item dropdown">
+	          <a class="nav-link dropdown-toggle" href="#" role="button"
+	             data-bs-toggle="dropdown" aria-expanded="false">
+	            Categories
+	          </a>
+	          <ul class="dropdown-menu">
+	            <li><a th:href="@{/category/1}" class="dropdown-item">Reviews</a></li>
+	            <li><a th:href="@{/category/2}" class="dropdown-item">News</a></li>
+	            <li><a th:href="@{/category/3}" class="dropdown-item">Maintenance</a></li>
+	            <li><a th:href="@{/category/4}" class="dropdown-item">Modifications</a></li>
+	            <li><a th:href="@{/category/5}" class="dropdown-item">Classic Cars</a></li>
+	          </ul>
+	        </li>
+	        <li class="nav-item">
+	          <a th:href="@{/about}" class="nav-link">About</a>
+	        </li>
+	        <li class="nav-item">
+	          <a th:href="@{/contact}" class="nav-link">Contact</a>
+	        </li>
+	      </ul>
+	    <form class="position-relative" th:action="@{/}" method="get" style="width: 300px;">
+	      <input type="search"
+	             name="keyword"
+	             class="form-control rounded-pill"
+	             th:value="${keyword}"
+	             placeholder="Tìm bài viết…"
+	             aria-label="Search">
+	      <button type="submit" class="btn btn-link position-absolute top-50 end-0 translate-middle-y me-2">
+	        <i class="bi bi-search"></i>
+	      </button>
+	      <!-- Container hiển thị kết quả live-search -->
+	      <div id="searchResults"
+	           class="list-group position-absolute w-100 mt-1"
+	           style="z-index: 1000;"></div>
+	    </form>
+	      <div class="d-flex align-items-center">
+	        <!-- nút tìm kiếm mobile -->
+	        <button class="btn btn-link text-light me-2 d-md-none">
+	          <i class="bi bi-search"></i>
+	        </button>
+	
+	        <!-- Khi chưa đăng nhập -->
+	      <div class="d-flex align-items-center">
+	        <!-- Nếu chưa đăng nhập -->
+	        <div th:if="${session.currentUser == null}">
+	          <a th:href="@{/login}"
+	             class="btn btn-primary me-2">
+	            Đăng nhập
+	          </a>
+	          <a th:href="@{/register}"
+	             class="btn btn-primary">
+	            Đăng ký
+	          </a>
+	        </div>
+	
+	        <!-- Khi đã đăng nhập -->
+	        <div th:if="${session.currentUser != null}" class="d-flex align-items-center">
+	          <a href="/posts/create"
+	             class="btn btn-primary ms-3 me-3 d-none d-md-block">
+	            Viết bài
+	          </a>
+	          <div class="dropdown">
+	            <button class="btn btn-link text-light dropdown-toggle"
+	                    type="button" id="userDropdown"
+	                    data-bs-toggle="dropdown" aria-expanded="false">
+	              <i class="bi bi-person-circle"></i>
+	            </button>
+	            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+	              <li><h6 class="dropdown-header"
+	                      th:text="${session.currentUser.fullName}">User</h6></li>
+	              <li><a th:href="@{/profile}"       class="dropdown-item">Profile</a></li>
+	              <li><a th:href="@{/post}"  class="dropdown-item">My Posts</a></li>
+	              <li><a th:href="@{/users/comments}" class="dropdown-item">My Comments</a></li>
+	              <li><hr class="dropdown-divider"></li>
+	              <li><a th:href="@{/logout}" class="dropdown-item">Đăng xuất</a></li>
+	            </ul>
+	          </div>
+	        </div>
+	      </div>
+	    </div>
+	  </div>
+  </div>
+</nav>
+  <!-- Main Content -->
+  <main class="pt-5">
+    <section class="py-5 dark-section">
+      <div class="container mt-5">
+        <div class="row justify-content-center">
+          <div class="col-md-6 col-lg-4">
+            <div th:if="${param.registered}" class="alert alert-success">Bạn đã đăng ký thành công. Vui lòng đăng nhập.</div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+            <div class="card dark-card shine-effect">
+              <div class="card-header dark-gradient-blue">
+                <h2 class="text-center gradient-text">Đăng nhập</h2>
+              </div>
+              <div class="card-body">
+                <form th:action="@{/login}" method="post">
+                  <div class="mb-3">
+                    <label for="username" class="form-label">Tên đăng nhập</label>
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="bi bi-person"></i></span>
+                      <input type="text" id="username" name="username" class="form-control" placeholder="Username" required>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label for="password" class="form-label">Mật khẩu</label>
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                      <input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
+                      <button type="button" id="togglePassword" class="btn btn-outline-secondary">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="mb-3 form-check">
+                    <input type="checkbox" id="rememberMe" name="rememberMe" class="form-check-input">
+                    <label for="rememberMe" class="form-check-label">Ghi nhớ đăng nhập</label>
+                  </div>
+                  <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">
+                      <i class="bi bi-box-arrow-in-right me-1"></i>Đăng nhập
+                    </button>
+                  </div>
+                </form>
+              </div>
+              <div class="card-footer text-center">
+                <small>Chưa có tài khoản? <a th:href="@{/register}" class="gradient-text">Đăng ký</a></small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.getElementById('togglePassword').addEventListener('click', function() {
+      const pwd = document.getElementById('password');
+      const icon = this.querySelector('i');
+      if (pwd.type === 'password') {
+        pwd.type = 'text';
+        icon.classList.replace('bi-eye', 'bi-eye-slash');
+      } else {
+        pwd.type = 'password';
+        icon.classList.replace('bi-eye-slash', 'bi-eye');
+      }
+    });
+  </script>
+</body>
+</html>

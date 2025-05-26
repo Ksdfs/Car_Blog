@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${post.title} + ' – CarBlog'">Tiêu đề bài viết</title>
+  <meta name="description" th:attr="content=${post.content}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+  <!-- Header/Navigation -->
+<nav class="navbar navbar-expand-lg fixed-top navbar-dark shadow-sm">
+  	<div class="container">
+	    <a th:href="@{/}" class="navbar-brand d-flex align-items-center">
+	      <i class="bi bi-car-front-fill text-danger me-2 fs-4"></i>
+	      <span class="gradient-text fw-bold">CarBlog</span>
+	    </a>
+	
+	    <button class="navbar-toggler" type="button"
+	            data-bs-toggle="collapse" data-bs-target="#navbarMain"
+	            aria-controls="navbarMain" aria-expanded="false"
+	            aria-label="Toggle navigation">
+	      <span class="navbar-toggler-icon"></span>
+	    </button>
+	
+	    <div class="collapse navbar-collapse" id="navbarMain">
+	      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+	        <li class="nav-item">
+	          <a th:href="@{/}" class="nav-link">Home</a>
+	        </li>
+	        <li class="nav-item dropdown">
+	          <a class="nav-link dropdown-toggle" href="#" role="button"
+	             data-bs-toggle="dropdown" aria-expanded="false">
+	            Categories
+	          </a>
+	          <ul class="dropdown-menu">
+	            <li><a th:href="@{/category/1}" class="dropdown-item">Reviews</a></li>
+	            <li><a th:href="@{/category/2}" class="dropdown-item">News</a></li>
+	            <li><a th:href="@{/category/3}" class="dropdown-item">Maintenance</a></li>
+	            <li><a th:href="@{/category/4}" class="dropdown-item">Modifications</a></li>
+	            <li><a th:href="@{/category/5}" class="dropdown-item">Classic Cars</a></li>
+	          </ul>
+	        </li>
+	        <li class="nav-item">
+	          <a th:href="@{/about}" class="nav-link">About</a>
+	        </li>
+	        <li class="nav-item">
+	          <a th:href="@{/contact}" class="nav-link">Contact</a>
+	        </li>
+	      </ul>
+	    <form class="position-relative" th:action="@{/}" method="get" style="width: 300px;">
+	      <input type="search"
+	             name="keyword"
+	             class="form-control rounded-pill"
+	             th:value="${keyword}"
+	             placeholder="Tìm bài viết…"
+	             aria-label="Search">
+	      <button type="submit" class="btn btn-link position-absolute top-50 end-0 translate-middle-y me-2">
+	        <i class="bi bi-search"></i>
+	      </button>
+	      <!-- Container hiển thị kết quả live-search -->
+	      <div id="searchResults"
+	           class="list-group position-absolute w-100 mt-1"
+	           style="z-index: 1000;"></div>
+	    </form>
+	      <div class="d-flex align-items-center">
+	        <!-- nút tìm kiếm mobile -->
+	        <button class="btn btn-link text-light me-2 d-md-none">
+	          <i class="bi bi-search"></i>
+	        </button>
+	
+	        <!-- Khi chưa đăng nhập -->
+	      <div class="d-flex align-items-center">
+	        <!-- Nếu chưa đăng nhập -->
+	        <div th:if="${session.currentUser == null}">
+	          <a th:href="@{/login}"
+	             class="btn btn-primary me-2">
+	            Đăng nhập
+	          </a>
+	          <a th:href="@{/register}"
+	             class="btn btn-primary">
+	            Đăng ký
+	          </a>
+	        </div>
+	
+	        <!-- Khi đã đăng nhập -->
+	        <div th:if="${session.currentUser != null}" class="d-flex align-items-center">
+	          <a href="/posts/create"
+	             class="btn btn-primary ms-3 me-3 d-none d-md-block">
+	            Viết bài
+	          </a>
+	          <div class="dropdown">
+	            <button class="btn btn-link text-light dropdown-toggle"
+	                    type="button" id="userDropdown"
+	                    data-bs-toggle="dropdown" aria-expanded="false">
+	              <i class="bi bi-person-circle"></i>
+	            </button>
+	            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+	              <li><h6 class="dropdown-header"
+	                      th:text="${session.currentUser.fullName}">User</h6></li>
+	              <li><a th:href="@{/profile}"       class="dropdown-item">Profile</a></li>
+	              <li><a th:href="@{/post}"  class="dropdown-item">My Posts</a></li>
+	              <li><a th:href="@{/users/comments}" class="dropdown-item">My Comments</a></li>
+	              <li><hr class="dropdown-divider"></li>
+	              <li><a th:href="@{/logout}" class="dropdown-item">Đăng xuất</a></li>
+	            </ul>
+	          </div>
+	        </div>
+	      </div>
+	    </div>
+	  </div>
+  </div>
+</nav>
+		  <!-- Main Content -->
+		<main class="flex-grow-1 pt-5">
+		  <article class="container py-4 mt-4">
+		    <div class="row">
+		      <!-- Cột nội dung chính -->
+		      <div class="col-12 col-md-8 col-lg-8">
+		        <!-- Post Header -->
+		        <div class="d-flex align-items-center gap-2 mb-3">
+		          <span class="badge bg-secondary" th:text="${post.category.name}">Chuyên mục</span>
+		          <div class="small text-muted d-flex align-items-center">
+		            <i class="bi bi-calendar3 me-1"></i>
+		            <span th:text="${#temporals.format(post.createdAt, 'dd/MM/yyyy')}">01/01/2025</span>
+		          </div>
+		          <div class="small text-muted d-flex align-items-center ms-2">
+		            <i class="bi bi-person me-1"></i>
+		            <span th:text="${post.user.fullName}">Tác giả</span>
+		          </div>
+		        </div>
+		
+		        <h1 class="display-5 fw-bold gradient-text mb-4" th:text="${post.title}">Tiêu đề bài viết</h1>
+		
+		        <!-- Ảnh đại diện -->
+		        <div class="image-container mb-4" th:if="${post.mainImage}">
+		          <img th:src="@{/uploads/post/{file}(file=${post.mainImage})}"
+		               th:alt="${post.title}"
+		               class="img-fluid w-100"
+		               onerror="this.src='https://via.placeholder.com/1200x600/343a40/FFFFFF?text=Image+Not+Available';">
+		        </div>
+		
+		        <!-- Nội dung bài viết -->
+		        <div class="prose mb-4" th:utext="${post.content}">Nội dung bài viết...</div>
+		
+				<!-- Comments Section -->
+				<div class="card dark-card mt-5">
+				  <div class="card-header">
+				    <!-- Đếm comment cha -->
+				    <h3 class="card-title mb-0"
+				        th:text="'Comments (' + ${#lists.size(post.comments.?[parentComment == null])} + ')'">
+				      Comments (0)
+				    </h3>
+				  </div>
+				  <div class="card-body">
+				    <!-- Form thêm comment mới -->
+				    <form th:action="@{/comments/add}" method="post" class="mb-4">
+				      <input type="hidden" name="postId" th:value="${post.postId}" />
+				      <textarea name="content" class="form-control mb-2"
+				                placeholder="Leave a comment..."></textarea>
+				      <button type="submit" class="btn btn-primary btn-sm">Post Comment</button>
+				    </form>
+				
+				    <!-- Loop qua các comment cha -->
+				    <div th:each="cmt : ${post.comments}"
+				         th:if="${cmt.parentComment == null}"
+				         class="d-flex gap-3 mb-4 pb-4 border-bottom border-dark">
+				
+				      <!-- Avatar -->
+				      <img th:src="@{'https://i.pravatar.cc/40?u=' + ${cmt.user.userId}}"
+				           alt="User" width="40" height="40" class="rounded-circle">
+				
+				      <div class="w-100">
+				        <!-- Header: tên + badge Author + thời gian -->
+				        <div class="d-flex justify-content-between align-items-center mb-1">
+				          <h6 class="mb-0">
+				            <span th:text="${cmt.user.fullName}">Người bình luận</span>
+				            <span class="badge bg-primary ms-2"
+				                  th:if="${cmt.user.userId == post.user.userId}">
+				              Author
+				            </span>
+				          </h6>
+				          <small class="text-muted"
+				                 th:text="${#temporals.format(cmt.createdAt, 'dd/MM/yyyy HH:mm')}">
+				            24/05/2025 23:35
+				          </small>
+				        </div>
+				
+				        <!-- Nội dung comment -->
+				        <p class="mb-2" th:text="${cmt.content}">Nội dung comment...</p>
+				
+				        <!-- Like & Reply buttons -->
+				        <div class="d-flex gap-3 align-items-center">
+							<form th:action="@{/comments/like}" method="post" class="d-inline">
+							  <input type="hidden" name="commentId" th:value="${cmt.commentId}" />
+							  <input type="hidden" name="postId"    th:value="${post.postId}" />
+							  <button type="submit" class="btn btn-sm btn-link text-muted p-0">
+							    <i class="bi bi-hand-thumbs-up"></i>
+							    <span th:text="${cmt.likes}">0</span>
+							  </button>
+							</form>
+				          <button class="btn btn-sm btn-link text-muted p-0"
+				                  type="button"
+				                  data-bs-toggle="collapse"
+				                  th:attr="data-bs-target='#replyForm__' + ${cmt.commentId}">
+				            Reply
+				          </button>
+				        </div>
+				
+				        <!-- Form reply (collapse) -->
+				        <div class="collapse mt-3" th:id="'replyForm__' + ${cmt.commentId}">
+				          <form th:action="@{/comments/reply}" method="post">
+				            <input type="hidden" name="postId" th:value="${post.postId}" />
+				            <input type="hidden" name="parentCommentId" th:value="${cmt.commentId}" />
+				            <textarea name="content" class="form-control mb-2" rows="2"
+				                      placeholder="Write a reply..."></textarea>
+				            <button type="submit" class="btn btn-primary btn-sm">Post Reply</button>
+				          </form>
+				        </div>
+				
+				        <!-- Loop qua các reply con -->
+				        <div th:each="rep : ${cmt.replies}"
+				             class="d-flex gap-3 mt-4 ms-4">
+				          <img th:src="@{'https://i.pravatar.cc/40?u=' + ${rep.user.userId}}"
+				               alt="User" width="40" height="40" class="rounded-circle">
+				          <div class="w-100">
+				            <div class="d-flex justify-content-between align-items-center mb-1">
+				              <h6 class="mb-0">
+				                <span th:text="${rep.user.fullName}">Tên reply</span>
+				                <span class="badge bg-primary ms-2"
+				                      th:if="${rep.user.userId == post.user.userId}">
+				                  Author
+				                </span>
+				              </h6>
+				              <small class="text-muted"
+				                     th:text="${#temporals.format(rep.createdAt, 'dd/MM/yyyy HH:mm')}">
+				                24/05/2025 23:40
+				              </small>
+				            </div>
+				            <p class="mb-2" th:text="${rep.content}">Nội dung reply...</p>
+				            <div class="d-flex gap-3 align-items-center">
+				              <form th:action="@{/comments/like}" method="post" class="d-inline">
+				                <input type="hidden" name="commentId" th:value="${rep.commentId}" />
+				                <button type="submit" class="btn btn-sm btn-link text-muted p-0">
+				                  <i class="bi bi-hand-thumbs-up"></i>
+				                  <span th:text="${rep.likes}">0</span>
+				                </button>
+				              </form>
+				            </div>
+				          </div>
+				        </div>
+				
+				      </div>
+				    </div>
+				  </div>
+				</div>
+
+		
+		      </div> <!-- đóng col nội dung -->
+		
+		      <!-- Sidebar Related Posts -->
+		      <div class="col-12 col-md-4 col-lg-4">
+		        <div class="sticky-top pt-4" style="top: 80px;">
+		          <div class="card dark-card mb-4">
+		            <div class="card-header">
+		              <h5 class="card-title text-white">Related Posts</h5>
+		            </div>
+		            <div class="card-body p-3 text-center text-muted small"
+		                 th:if="${relatedPosts == null or relatedPosts.isEmpty()}">
+		              Không có bài liên quan
+		            </div>
+		            <ul class="list-group list-group-flush bg-transparent"
+		                th:if="${relatedPosts != null and !relatedPosts.isEmpty()}">
+		              <li th:each="rp : ${relatedPosts}" class="list-group-item bg-transparent border-dark">
+		                <a th:href="@{/posts/detail/{id}(id=${rp.id})}" class="d-flex gap-2 text-decoration-none">
+		                  <img th:src="@{${rp.mainImage}}"
+		                       alt="thumb" class="rounded" width="80" height="60"
+		                       style="object-fit: cover;"
+		                       onerror="this.src='https://via.placeholder.com/80x60/343a40/FFFFFF';">
+		                  <div>
+		                    <h6 class="text-light mb-1" th:text="${rp.title}">Tiêu đề liên quan</h6>
+		                    <div class="small text-muted"
+		                         th:text="${#dates.format(rp.createdAt, 'dd/MM/yyyy')}">01/01/2025</div>
+		                  </div>
+		                </a>
+		              </li>
+		            </ul>
+		          </div>
+		        </div>
+		      </div>
+		
+		    </div> 
+		  </article>
+		</main>
+
+
+  <!-- Footer -->
+	<footer class="footer-dark py-5 bg-dark">
+    <div class="container">
+      <div class="row g-4 mb-4">
+        <div class="col-lg-4 mb-4 mb-lg-0">
+          <div class="d-flex align-items-center mb-3">
+            <i class="bi bi-car-front-fill text-danger me-2 fs-4"></i>
+            <span class="gradient-text fw-bold fs-4">CarBlog</span>
+          </div>
+          <p class="text-muted small">
+            Your trusted source for car reviews, news, maintenance tips, and everything automotive. Driving the future
+            of automotive content since 2020.
+          </p>
+          <div class="d-flex gap-3 mt-3">
+            <a href="#" class="text-muted text-decoration-none"><i class="bi bi-facebook fs-5"></i></a>
+            <a href="#" class="text-muted text-decoration-none"><i class="bi bi-twitter-x fs-5"></i></a>
+            <a href="#" class="text-muted text-decoration-none"><i class="bi bi-instagram fs-5"></i></a>
+            <a href="#" class="text-muted text-decoration-none"><i class="bi bi-youtube fs-5"></i></a>
+          </div>
+        </div>
+        <div class="col-sm-6 col-md-4 col-lg-2">
+          <h5 class="gradient-text mb-3">Categories</h5>
+          <ul class="nav flex-column">
+            <li class="nav-item" th:each="c: ${categories}">
+              <a th:href="@{/category/{id}(id=${c.categoryId})}"
+                 class="nav-link text-muted p-0 mb-2"
+                 th:text="${c.name}"></a>
+            </li>
+          </ul>
+        </div>
+        <div class="col-sm-6 col-md-4 col-lg-2">
+          <h5 class="gradient-text mb-3">Quick Links</h5>
+          <ul class="nav flex-column">
+            <li class="nav-item"><a th:href="@{/about}" class="nav-link text-muted p-0 mb-2">About Us</a></li>
+            <li class="nav-item"><a th:href="@{/contact}" class="nav-link text-muted p-0 mb-2">Contact</a></li>
+            <li class="nav-item"><a th:href="@{/privacy-policy}" class="nav-link text-muted p-0 mb-2">Privacy Policy</a></li>
+            <li class="nav-item"><a th:href="@{/terms}" class="nav-link text-muted p-0 mb-2">Terms of Service</a></li>
+            <li class="nav-item"><a th:href="@{/sitemap}" class="nav-link text-muted p-0 mb-2">Sitemap</a></li>
+          </ul>
+        </div>
+        <div class="col-md-4 col-lg-4">
+          <h5 class="gradient-text mb-3">Contact Us</h5>
+          <ul class="list-unstyled text-muted small">
+            <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-geo-alt text-danger"></i> Nha Trang University</li>
+            <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-telephone text-success"></i> 0936841458</li>
+            <li class="d-flex align-items-center gap-2 mb-3"><i class="bi bi-envelope text-primary"></i> khanh.nn.64cntt@ntu.edu.vn</li>
+          </ul>
+          <h5 class="gradient-text mb-3">Subscribe</h5>
+          <form th:action="@{/subscribe}" method="post" class="d-flex gap-2 mt-2">
+            <input type="email" name="email" class="form-control" placeholder="Your email" required>
+            <button type="submit" class="btn btn-primary">Subscribe</button>
+          </form>
+        </div>
+      </div>
+      <div class="border-top border-dark pt-4 text-center text-muted small">
+        © 2025 CarBlog. All rights reserved. Designed with ❤️ for car enthusiasts.
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
