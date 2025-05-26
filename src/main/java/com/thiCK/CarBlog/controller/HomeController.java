@@ -107,4 +107,17 @@ public class HomeController {
         }
         return result;
     }
+    
+    @GetMapping("/api/posts")
+    @ResponseBody
+    public Map<String, Object> getPagedPosts(@RequestParam(defaultValue = "0") int page) {
+        int size = 6;
+        var postPage = postService.getLatestPosts(page, size);
+        Map<String, Object> response = new HashMap<>();
+        response.put("posts", postPage.getContent());
+        response.put("totalPages", postPage.getTotalPages());
+        response.put("currentPage", page);
+        return response;
+    }
+
 }
