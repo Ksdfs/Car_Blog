@@ -68,24 +68,21 @@ public class HomeController {
         return "contact";
     }
 
-    @GetMapping("/posts/{id}")
-    public String viewPost(HttpServletRequest request,
-                           @PathVariable("id") Integer id,
-                           HttpSession session,
-                           Model model) {
-        Post post = postService.findById(id)
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy bài viết id=" + id));
-
-        List<Post> userPosts = postService.findAllByUser(post.getUser()).stream()
-            .filter(p -> !p.getPostId().equals(id))
-            .collect(Collectors.toList());
-
-        model.addAttribute("post", post);
-        model.addAttribute("categories", categoryService.findAll());
-        model.addAttribute("userPosts", userPosts);
-
-        return "post_detail";
-    }
+	/*
+	 * @GetMapping("/posts/{id}") public String viewPost(HttpServletRequest request,
+	 * 
+	 * @PathVariable("id") Integer id, HttpSession session, Model model) { Post post
+	 * = postService.findById(id) .orElseThrow(() -> new
+	 * RuntimeException("Không tìm thấy bài viết id=" + id));
+	 * 
+	 * List<Post> userPosts = postService.findAllByUser(post.getUser()).stream()
+	 * .filter(p -> !p.getPostId().equals(id)) .collect(Collectors.toList());
+	 * 
+	 * model.addAttribute("post", post); model.addAttribute("categories",
+	 * categoryService.findAll()); model.addAttribute("userPosts", userPosts);
+	 * 
+	 * return "post_detail"; }
+	 */
 
     // API endpoint trả về JSON dùng AJAX live-search
     @GetMapping("/search")

@@ -271,22 +271,32 @@
 		                 th:if="${relatedPosts == null or relatedPosts.isEmpty()}">
 		              Không có bài liên quan
 		            </div>
-					<ul class="list-group list-group-flush bg-transparent"
-					    th:if="${relatedPosts != null and !relatedPosts.isEmpty()}">
-					  <li th:each="rp : ${relatedPosts}" class="list-group-item bg-transparent border-dark">
-					    <a th:href="@{/posts/detail/{id}(id=${rp.postId})}" class="d-flex gap-2 text-decoration-none">
-					      <img th:src="@{/uploads/post/{file}(file=${rp.mainImage})}"
+					<ul class="list-group list-group-flush bg-transparent">
+					  <li th:each="rp : ${relatedPosts}" class="list-group-item bg-transparent border-dark p-0">
+					    <a th:href="@{/posts/{id}(id=${rp.postId})}"
+					       class="d-flex gap-2 text-decoration-none align-items-start p-2">
+					      
+					      <!-- Ảnh nhỏ -->
+					      <img th:src="@{${rp.mainImage}}"
 					           alt="thumb" class="rounded" width="80" height="60"
-					           style="object-fit: cover;"
-					           onerror="this.src='https://via.placeholder.com/80x60/343a40/FFFFFF';">
-					      <div>
-					        <h6 class="text-light mb-1" th:text="${rp.title}">Tiêu đề liên quan</h6>
-					        <div class="small text-muted"
-					             th:text="${#dates.format(rp.createdAt, 'dd/MM/yyyy')}">01/01/2025</div>
+					           style="object-fit: cover;" />
+					
+					      <!-- Khung chứa title + date -->
+					      <div class="flex-grow-1">
+					        <!-- Flex container để title ở trái, date ở phải -->
+					        <div class="d-flex justify-content-between align-items-center">
+					          <h6 class="text-light mb-0" th:text="${rp.title}">Tiêu đề liên quan</h6>
+					          <small class="text-muted"
+					                 th:text="${#temporals.format(rp.createdAt, 'dd/MM/yyyy')}">
+					            01/01/2025
+					          </small>
+					        </div>
 					      </div>
 					    </a>
 					  </li>
 					</ul>
+
+
 
 
 		          </div>

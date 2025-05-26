@@ -29,4 +29,6 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     
     // Tìm bài viết theo tiêu đề bắt đầu bằng keyword, không phân biệt hoa thường
     List<Post> findByTitleStartingWithIgnoreCase(String titlePrefix);
+    
+    
 }

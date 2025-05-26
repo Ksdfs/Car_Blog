@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -41,7 +41,7 @@ public class PostController {
         return "index";
     }
 
-    /** Form tạo mới bài viết */
+    /** Form tạo mới */
     @GetMapping({"/new", "/create"})
     public String showCreateForm(Model model) {
         model.addAttribute("post", new Post());
@@ -49,7 +49,7 @@ public class PostController {
         return "new_post";
     }
 
-    /** Xử lý tạo mới bài viết */
+    /** Xử lý tạo mới */
     @PostMapping({"/new", "/create"})
     public String handleCreate(
             @ModelAttribute("post") Post post,
@@ -63,24 +63,23 @@ public class PostController {
         }
         post.setUser(currentUser);
         post.setCreatedAt(LocalDateTime.now());
-        // Gọi phương thức save đã cập nhật trong PostService
         postService.save(post, mainImageFile, imageFiles);
         return "redirect:/posts/";
     }
 
-    /** Form chỉnh sửa bài viết */
+    /** Form chỉnh sửa */
     @GetMapping("/{id}/edit")
     public String showEditForm(@PathVariable Integer id, Model model) {
         Optional<Post> opt = postService.findById(id);
         if (opt.isEmpty()) {
-            return "redirect:/posts/";  // hoặc trang 404
+            return "redirect:/posts/";
         }
         model.addAttribute("post", opt.get());
         model.addAttribute("categories", categoryService.findAll());
         return "edit_post";
     }
 
-    /** Xử lý lưu chỉnh sửa */
+    /** Xử lý cập nhật */
     @PostMapping("/{id}/edit")
     public String updatePost(
             @PathVariable Integer id,
@@ -99,9 +98,11 @@ public class PostController {
         return "redirect:/posts/";
     }
 
-    /** Chi tiết bài viết */
-    @GetMapping("/detail/{id}")
-    public String postDetail(@PathVariable Integer id, Model model, HttpSession session) {
+    /** Chi tiết bài viết (GET /posts/{id}) */
+    @GetMapping("/{id}")
+    public String postDetail(@PathVariable Integer id,
+                             Model model,
+                             HttpSession session) {
         Optional<Post> opt = postService.findById(id);
         if (opt.isEmpty()) {
             return "redirect:/posts/";
@@ -112,16 +113,13 @@ public class PostController {
         model.addAttribute("categories", categoryService.findAll());
         model.addAttribute("newComment", new Comment());
 
-        // Lấy related posts
+        // Related posts
         List<Post> relatedPosts = postService.findTop5ByCategoryAndNotId(
             post.getCategory().getCategoryId(),
             post.getPostId()
         );
         model.addAttribute("relatedPosts", relatedPosts);
-        
-        
 
         return "post_detail";
     }
-
 }
