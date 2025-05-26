@@ -8,6 +8,10 @@ import com.thiCK.CarBlog.repository.PostRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -183,6 +187,11 @@ public class PostService {
     
     public List<Post> findTop5ByCategoryAndNotId(Integer categoryId, Integer postId) {
         return postRepo.findTop5ByCategory_CategoryIdAndPostIdNotOrderByCreatedAtDesc(categoryId, postId);
+    }
+    
+    public Page<Post> getLatestPosts(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return postRepo.findAll(pageable);
     }
 
 }

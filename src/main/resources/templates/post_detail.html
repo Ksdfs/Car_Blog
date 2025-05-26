@@ -277,9 +277,13 @@
 					       class="d-flex gap-2 text-decoration-none align-items-start p-2">
 					      
 					      <!-- Ảnh nhỏ -->
-					      <img th:src="@{${rp.mainImage}}"
-					           alt="thumb" class="rounded" width="80" height="60"
-					           style="object-fit: cover;" />
+					      <img th:src="@{/uploads/post/{file}(file=${rp.mainImage})}"
+							     alt="thumb"
+							     class="rounded"
+							     width="80" height="60"
+							     style="object-fit: cover;"
+							     onerror="this.onerror=null; this.src='https://via.placeholder.com/80x60?text=No+Image';" />
+
 					
 					      <!-- Khung chứa title + date -->
 					      <div class="flex-grow-1">

@@ -252,6 +252,23 @@
           </div>
         </div>
       </div>
+		      <!-- Thêm pagination nút -->
+		<div class="mt-4 d-flex justify-content-center">
+		  <nav th:if="${totalPages > 1}">
+		    <ul class="pagination pagination-dark">
+		      <li class="page-item" th:if="${currentPage > 0}">
+		        <a class="page-link" th:href="@{|/?page=${currentPage - 1}|}">&laquo;</a>
+		      </li>
+		      <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+		          th:classappend="${i == currentPage} ? 'active'">
+		        <a class="page-link" th:href="@{|/?page=${i}|}" th:text="${i + 1}">1</a>
+		      </li>
+		      <li class="page-item" th:if="${currentPage < totalPages - 1}">
+		        <a class="page-link" th:href="@{|/?page=${currentPage + 1}|}">&raquo;</a>
+		      </li>
+		    </ul>
+		  </nav>
+		</div>
     </div>
   </section>
   

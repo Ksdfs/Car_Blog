@@ -32,17 +32,8 @@ public class HomeController {
     public String index(HttpServletRequest request,
                         HttpSession session,
                         Model model,
-                        @RequestParam(value = "keyword", required = false) String keyword) {
-
-        List<Post> posts;
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            posts = postService.searchByPrefix(keyword.trim());
-            model.addAttribute("keyword", keyword);
-        } else {
-            // Đảm bảo lấy toàn bộ bài viết (có JOIN FETCH để tránh LazyLoad Exception nếu cần)
-            posts = postService.findAllWithCategory();
-        }
-        model.addAttribute("posts", posts);
+                        @RequestParam(value = "keyword", required = false) String keyword,
+                        @RequestParam(value = "page", defaultValue = "0") int page) {
 
         List<Category> categories = categoryService.findAll();
         model.addAttribute("categories", categories);
@@ -53,10 +44,23 @@ public class HomeController {
             .collect(Collectors.toList());
         model.addAttribute("featuredCategories", featured);
 
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            List<Post> searchResults = postService.searchByPrefix(keyword.trim());
+            model.addAttribute("posts", searchResults);
+            model.addAttribute("keyword", keyword);
+        } else {
+            int size = 6;
+            var postPage = postService.getLatestPosts(page, size);
+            model.addAttribute("posts", postPage.getContent());
+            model.addAttribute("currentPage", page);
+            model.addAttribute("totalPages", postPage.getTotalPages());
+        }
+
         model.addAttribute("currentUser", session.getAttribute("currentUser"));
         model.addAttribute("currentPath", request.getRequestURI());
         return "index";
     }
+
 
     @GetMapping("/about")
     public String about() {
