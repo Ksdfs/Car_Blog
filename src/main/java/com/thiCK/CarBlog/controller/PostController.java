@@ -118,6 +118,8 @@ public class PostController {
             post.getPostId()
         );
         model.addAttribute("relatedPosts", relatedPosts);
+        
+        
 
         return "post_detail";
     }
