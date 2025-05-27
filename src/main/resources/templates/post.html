@@ -250,7 +250,7 @@
       </div>
       
       <div class="mt-4 d-flex justify-content-center">
-  <nav th:if="${totalPages > 1}">
+  <nav>
     <ul class="pagination pagination-dark">
       <li class="page-item" th:if="${currentPage > 0}">
         <a class="page-link" th:href="@{|/post?page=${currentPage - 1}&status=${status}&category=${categoryId}&sort=${sort}|}">&laquo;</a>
