@@ -7,6 +7,7 @@ import com.thiCK.CarBlog.service.CategoryService;
 import com.thiCK.CarBlog.service.PostService;
 import com.thiCK.CarBlog.service.UserService;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -33,10 +34,16 @@ public class PostController {
         this.userService     = userService;
     }
 
-    /** Danh sách bài viết */
+    /** Danh sách bài viết có phân trang */
     @GetMapping({"", "/"})
-    public String index(Model model) {
-        model.addAttribute("posts", postService.findAllWithCategory());
+    public String index(Model model,
+                        @RequestParam(name = "page", defaultValue = "0") int page) {
+        int size = 6;
+        Page<Post> postPage = postService.getLatestPosts(page, size);
+
+        model.addAttribute("posts", postPage.getContent());
+        model.addAttribute("currentPage", postPage.getNumber());
+        model.addAttribute("totalPages", postPage.getTotalPages());
         model.addAttribute("categories", categoryService.findAll());
         return "index";
     }
@@ -98,7 +105,7 @@ public class PostController {
         return "redirect:/posts/";
     }
 
-    /** Chi tiết bài viết (GET /posts/{id}) */
+    /** Chi tiết bài viết */
     @GetMapping("/{id}")
     public String postDetail(@PathVariable Integer id,
                              Model model,
@@ -109,11 +116,11 @@ public class PostController {
         }
 
         Post post = opt.get();
-        model.addAttribute("post", post);
-        model.addAttribute("categories", categoryService.findAll());
-        model.addAttribute("newComment", new Comment());
 
-        // Related posts
+        model.addAttribute("post", post);
+        model.addAttribute("newComment", new Comment());
+        model.addAttribute("categories", categoryService.findAll());
+
         List<Post> relatedPosts = postService.findTop5ByCategoryAndNotId(
             post.getCategory().getCategoryId(),
             post.getPostId()

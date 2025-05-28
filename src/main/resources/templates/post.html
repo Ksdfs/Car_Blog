@@ -249,25 +249,38 @@
         </div>
       </div>
       
-      <div class="mt-4 d-flex justify-content-center">
-  <nav>
-    <ul class="pagination pagination-dark">
-      <li class="page-item" th:if="${currentPage > 0}">
-        <a class="page-link" th:href="@{|/post?page=${currentPage - 1}&status=${status}&category=${categoryId}&sort=${sort}|}">&laquo;</a>
-      </li>
-      <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
-          th:classappend="${i == currentPage} ? 'active'">
-        <a class="page-link" th:href="@{|/post?page=${i}&status=${status}&category=${categoryId}&sort=${sort}|}" th:text="${i + 1}"></a>
-      </li>
-      <li class="page-item" th:if="${currentPage < totalPages - 1}">
-        <a class="page-link" th:href="@{|/post?page=${currentPage + 1}&status=${status}&category=${categoryId}&sort=${sort}|}">&raquo;</a>
-      </li>
-    </ul>
-  </nav>
-</div>
-      
-      
-    </div>
+		<div class="mt-4 d-flex justify-content-center">
+		  <nav>
+		    <ul class="pagination pagination-dark">
+		      <!-- Nút Prev -->
+		      <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+		        <a class="page-link"
+		           th:href="@{|/post?page=${currentPage - 1}&status=${status != null ? status : ''}&category=${categoryId != null ? categoryId : ''}&sort=${sort}|}">
+		          &laquo;
+		        </a>
+		      </li>
+		
+		      <!-- Các trang -->
+		      <li class="page-item"
+		          th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+		          th:classappend="${i == currentPage} ? 'active'">
+		        <a class="page-link"
+		           th:href="@{|/post?page=${i}&status=${status != null ? status : ''}&category=${categoryId != null ? categoryId : ''}&sort=${sort}|}"
+		           th:text="${i + 1}"></a>
+		      </li>
+		
+		      <!-- Nút Next -->
+		      <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+		        <a class="page-link"
+		           th:href="@{|/post?page=${currentPage + 1}&status=${status != null ? status : ''}&category=${categoryId != null ? categoryId : ''}&sort=${sort}|}">
+		          &raquo;
+		        </a>
+		      </li>
+		    </ul>
+		  </nav>
+		</div>
+
+   </div>
   </section>
 </main>
 
