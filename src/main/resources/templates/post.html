@@ -1,376 +1,423 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi" data-bs-theme="dark">
 <head>
-  <meta charset="UTF-8">
-  <title>My Posts – CarBlog</title>
-  <meta name="description" content="Manage your published articles and drafts">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
-        crossorigin="anonymous">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-  <link rel="stylesheet" th:href="@{/css/style.css}">
+<meta charset="UTF-8">
+<title>My Posts – CarBlog</title>
+<meta name="description"
+	content="Manage your published articles and drafts">
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+	rel="stylesheet"
+	integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+	crossorigin="anonymous">
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
-<!-- ========= NAVBAR ========= -->
-<nav class="navbar navbar-expand-lg fixed-top navbar-dark shadow-sm">
-  	<div class="container">
-	    <a th:href="@{/}" class="navbar-brand d-flex align-items-center">
-	      <i class="bi bi-car-front-fill text-danger me-2 fs-4"></i>
-	      <span class="gradient-text fw-bold">CarBlog</span>
-	    </a>
-	
-	    <button class="navbar-toggler" type="button"
-	            data-bs-toggle="collapse" data-bs-target="#navbarMain"
-	            aria-controls="navbarMain" aria-expanded="false"
-	            aria-label="Toggle navigation">
-	      <span class="navbar-toggler-icon"></span>
-	    </button>
-	
-	    <div class="collapse navbar-collapse" id="navbarMain">
-	      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-	        <li class="nav-item">
-	          <a th:href="@{/}" class="nav-link">Home</a>
-	        </li>
-	        <li class="nav-item dropdown">
-	          <a class="nav-link dropdown-toggle" href="#" role="button"
-	             data-bs-toggle="dropdown" aria-expanded="false">
-	            Categories
-	          </a>
-	          <ul class="dropdown-menu">
-	            <li><a th:href="@{/category/1}" class="dropdown-item">Reviews</a></li>
-	            <li><a th:href="@{/category/2}" class="dropdown-item">News</a></li>
-	            <li><a th:href="@{/category/3}" class="dropdown-item">Maintenance</a></li>
-	            <li><a th:href="@{/category/4}" class="dropdown-item">Modifications</a></li>
-	            <li><a th:href="@{/category/5}" class="dropdown-item">Classic Cars</a></li>
-	          </ul>
-	        </li>
-	        <li class="nav-item">
-	          <a th:href="@{/about}" class="nav-link">About</a>
-	        </li>
-	        <li class="nav-item">
-	          <a th:href="@{/contact}" class="nav-link">Contact</a>
-	        </li>
-	      </ul>
-	    <form class="position-relative" th:action="@{/}" method="get" style="width: 300px;">
-	      <input type="search"
-	             name="keyword"
-	             class="form-control rounded-pill"
-	             th:value="${keyword}"
-	             placeholder="Tìm bài viết…"
-	             aria-label="Search">
-	      <button type="submit" class="btn btn-link position-absolute top-50 end-0 translate-middle-y me-2">
-	        <i class="bi bi-search"></i>
-	      </button>
-	      <!-- Container hiển thị kết quả live-search -->
-	      <div id="searchResults"
-	           class="list-group position-absolute w-100 mt-1"
-	           style="z-index: 1000;"></div>
-	    </form>
-	      <div class="d-flex align-items-center">
-	        <!-- nút tìm kiếm mobile -->
-	        <button class="btn btn-link text-light me-2 d-md-none">
-	          <i class="bi bi-search"></i>
-	        </button>
-	
-	        <!-- Khi chưa đăng nhập -->
-	      <div class="d-flex align-items-center">
-	        <!-- Nếu chưa đăng nhập -->
-	        <div th:if="${session.currentUser == null}">
-	          <a th:href="@{/login}"
-	             class="btn btn-primary me-2">
-	            Đăng nhập
-	          </a>
-	          <a th:href="@{/register}"
-	             class="btn btn-primary">
-	            Đăng ký
-	          </a>
-	        </div>
-	
-	        <!-- Khi đã đăng nhập -->
-	        <div th:if="${session.currentUser != null}" class="d-flex align-items-center">
-	          <a href="/posts/create"
-	             class="btn btn-primary ms-3 me-3 d-none d-md-block">
-	            Viết bài
-	          </a>
-	          <div class="dropdown">
-	            <button class="btn btn-link text-light dropdown-toggle"
-	                    type="button" id="userDropdown"
-	                    data-bs-toggle="dropdown" aria-expanded="false">
-	              <i class="bi bi-person-circle"></i>
-	            </button>
-	            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-	              <li><h6 class="dropdown-header"
-	                      th:text="${session.currentUser.fullName}">User</h6></li>
-	              <li><a th:href="@{/profile}"       class="dropdown-item">Profile</a></li>
-	              <li><a th:href="@{/post}"  class="dropdown-item">My Posts</a></li>
-	              <li><a th:href="@{/users/comments}" class="dropdown-item">My Comments</a></li>
-	              <li><hr class="dropdown-divider"></li>
-	              <li><a th:href="@{/logout}" class="dropdown-item">Đăng xuất</a></li>
-	            </ul>
-	          </div>
-	        </div>
-	      </div>
-	    </div>
-	  </div>
-  </div>
-</nav>
+	<!-- ========= NAVBAR ========= -->
+	<nav class="navbar navbar-expand-lg fixed-top navbar-dark shadow-sm">
+		<div class="container">
+			<a th:href="@{/}" class="navbar-brand d-flex align-items-center">
+				<i class="bi bi-car-front-fill text-danger me-2 fs-4"></i> <span
+				class="gradient-text fw-bold">CarBlog</span>
+			</a>
 
-<!-- ========= MAIN ========= -->
-<main class="pt-5 mt-4">
-  <section class="py-5">
-    <div class="container">
-      <h1>My Posts</h1>
-      <a href="/posts/create" class="btn btn-primary mb-4">Viết bài</a>
+			<button class="navbar-toggler" type="button"
+				data-bs-toggle="collapse" data-bs-target="#navbarMain"
+				aria-controls="navbarMain" aria-expanded="false"
+				aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
 
-      <!-- STATS -->
-      <div class="row g-4 mb-5">
-        <div class="col-sm-6 col-lg-3">
-          <div class="card dark-card text-center">
-            <div class="card-body">
-              <i class="bi bi-file-text text-primary fs-1 mb-3"></i>
-              <h3 class="fs-2 fw-bold text-white mb-1" th:text="${totalPosts}">0</h3>
-              <p class="text-muted mb-0">Total Posts</p>
-            </div>
-          </div>
-        </div>
-        <div class="col-sm-6 col-lg-3">
-          <div class="card dark-card text-center">
-            <div class="card-body">
-              <i class="bi bi-eye text-success fs-1 mb-3"></i>
-              <h3 class="fs-2 fw-bold text-white mb-1" th:text="${totalViews}">0</h3>
-              <p class="text-muted mb-0">Total Views</p>
-            </div>
-          </div>
-        </div>
-        <div class="col-sm-6 col-lg-3">
-          <div class="card dark-card text-center">
-            <div class="card-body">
-              <i class="bi bi-chat text-warning fs-1 mb-3"></i>
-              <h3 class="fs-2 fw-bold text-white mb-1" th:text="${totalComments}">0</h3>
-              <p class="text-muted mb-0">Total Comments</p>
-            </div>
-          </div>
-        </div>
-        <div class="col-sm-6 col-lg-3">
-          <div class="card dark-card text-center">
-            <div class="card-body">
-              <i class="bi bi-heart text-danger fs-1 mb-3"></i>
-              <h3 class="fs-2 fw-bold text-white mb-1" th:text="${totalLikes}">0</h3>
-              <p class="text-muted mb-0">Total Likes</p>
-            </div>
-          </div>
-        </div>
-      </div>
+			<div class="collapse navbar-collapse" id="navbarMain">
+				<ul class="navbar-nav me-auto mb-2 mb-lg-0">
+					<li class="nav-item"><a th:href="@{/}" class="nav-link">Home</a>
+					</li>
+					<li class="nav-item dropdown"><a
+						class="nav-link dropdown-toggle" href="#" role="button"
+						data-bs-toggle="dropdown" aria-expanded="false"> Categories </a>
+						<ul class="dropdown-menu">
+							<li><a th:href="@{/category/1}" class="dropdown-item">Reviews</a></li>
+							<li><a th:href="@{/category/2}" class="dropdown-item">News</a></li>
+							<li><a th:href="@{/category/3}" class="dropdown-item">Maintenance</a></li>
+							<li><a th:href="@{/category/4}" class="dropdown-item">Modifications</a></li>
+							<li><a th:href="@{/category/5}" class="dropdown-item">Classic
+									Cars</a></li>
+						</ul></li>
+					<li class="nav-item"><a th:href="@{/about}" class="nav-link">About</a>
+					</li>
+					<li class="nav-item"><a th:href="@{/contact}" class="nav-link">Contact</a>
+					</li>
+				</ul>
+				<form class="position-relative" th:action="@{/}" method="get"
+					style="width: 300px;">
+					<input type="search" name="keyword"
+						class="form-control rounded-pill" th:value="${keyword}"
+						placeholder="Tìm bài viết…" aria-label="Search">
+					<button type="submit"
+						class="btn btn-link position-absolute top-50 end-0 translate-middle-y me-2">
+						<i class="bi bi-search"></i>
+					</button>
+					<!-- Container hiển thị kết quả live-search -->
+					<div id="searchResults"
+						class="list-group position-absolute w-100 mt-1"
+						style="z-index: 1000;"></div>
+				</form>
+				<div class="d-flex align-items-center">
+					<!-- nút tìm kiếm mobile -->
+					<button class="btn btn-link text-light me-2 d-md-none">
+						<i class="bi bi-search"></i>
+					</button>
 
-      <!-- FILTER form -->
-      <form th:action="@{/post}" method="get" class="card dark-card mb-4">
-        <div class="card-body">
-          <div class="row g-3 align-items-center">
-            <!-- status -->
-            <div class="col-md-3">
-				<label for="statusFilter" class="form-label text-muted small">Status</label>
-				<select name="status" class="form-select" id="statusFilter">
-				  <option value=""             th:selected="${status == null}">All Posts</option>
-				  <option value="published"    th:selected="${status == 'published'}">Published</option>
-				  <option value="draft"        th:selected="${status == 'draft'}">Draft</option>
-				</select>
-            </div>
-            <!-- category -->
-            <div class="col-md-3">
-				<label for="categoryFilter" class="form-label text-muted small">Category</label>
-				<select name="category" class="form-select" id="categoryFilter">
-				  <option value=""                th:selected="${categoryId == null}">All Categories</option>
-				  <option th:each="c : ${categories}"
-				          th:value="${c.categoryId}"
-				          th:text="${c.name}"
-				          th:selected="${c.categoryId == categoryId}">
-				  </option>
-				</select>
-            </div>
-            <!-- sort -->
-            <div class="col-md-3">
-				<label for="sortBy" class="form-label text-muted small">Sort By</label>
-				<select name="sort" class="form-select" id="sortBy">
-				  <option value="newest"         th:selected="${sort=='newest'}">Newest First</option>
-				  <option value="oldest"         th:selected="${sort=='oldest'}">Oldest First</option>
-				  <option value="most-viewed"    th:selected="${sort=='most-viewed'}">Most Viewed</option>
-				  <option value="most-commented" th:selected="${sort=='most-commented'}">Most Commented</option>
-				</select>
-            </div>
-            <!-- buttons -->
-            <div class="col-md-3">
-              <label class="form-label text-muted small">&nbsp;</label>
-              <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-outline-primary flex-fill">
-                  <i class="bi bi-funnel"></i> Filter
-                </button>
-                <a th:href="@{/post}" class="btn btn-outline-secondary">
-                  <i class="bi bi-arrow-clockwise"></i> Reset
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </form>
+					<!-- Khi chưa đăng nhập -->
+					<div class="d-flex align-items-center">
+						<!-- Nếu chưa đăng nhập -->
+						<div th:if="${session.currentUser == null}">
+							<a th:href="@{/login}" class="btn btn-primary me-2"> Đăng
+								nhập </a> <a th:href="@{/register}" class="btn btn-primary">
+								Đăng ký </a>
+						</div>
 
-      <!-- POSTS list -->
-      <div class="row g-4">
-        <div class="col-12" th:each="post : ${userPosts}">
-          <div class="card mb-3">
-            <div class="row g-0">
-              <div class="col-md-3">
-                <img th:src="@{/uploads/post/{file}(file=${post.mainImage})}" class="img-fluid" th:alt="${post.title}">
-              </div>
-              <div class="col-md-6">
-                <div class="card-body">
-                  <h5 th:text="${post.title}">Post Title</h5>
-                  <p th:text="${post.excerpt}">Excerpt…</p>
-                </div>
-              </div>
-              <div class="col-md-3 d-flex align-items-center">
-                <div class="w-100">
-                  <a th:href="@{/posts/detail/{id}(id=${post.postId})}"               class="btn btn-outline-primary w-100 mb-2">View</a>
-                  <a th:href="@{'/posts/' + ${post.postId} + '/edit'}"      class="btn btn-outline-warning w-100 mb-2">Edit</a>
-                  <button class="btn btn-outline-danger w-100"
-                          onclick="confirmDelete(this)"
-                          th:data-post-id="${post.postId}"
-                          th:data-post-title="${post.title}">Delete</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- no posts -->
-        <div th:if="${userPosts.size() == 0}" class="text-center py-5">
-          <h3>No posts found</h3>
-          <a th:href="@{/posts/new}" class="btn btn-primary">Write Your First Post</a>
-        </div>
-      </div>
-      
-		<div class="mt-4 d-flex justify-content-center">
-		  <nav>
-		    <ul class="pagination pagination-dark">
-		      <!-- Nút Prev -->
-		      <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-		        <a class="page-link"
-		           th:href="@{|/post?page=${currentPage - 1}&status=${status != null ? status : ''}&category=${categoryId != null ? categoryId : ''}&sort=${sort}|}">
-		          &laquo;
-		        </a>
-		      </li>
-		
-		      <!-- Các trang -->
-		      <li class="page-item"
-		          th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
-		          th:classappend="${i == currentPage} ? 'active'">
-		        <a class="page-link"
-		           th:href="@{|/post?page=${i}&status=${status != null ? status : ''}&category=${categoryId != null ? categoryId : ''}&sort=${sort}|}"
-		           th:text="${i + 1}"></a>
-		      </li>
-		
-		      <!-- Nút Next -->
-		      <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
-		        <a class="page-link"
-		           th:href="@{|/post?page=${currentPage + 1}&status=${status != null ? status : ''}&category=${categoryId != null ? categoryId : ''}&sort=${sort}|}">
-		          &raquo;
-		        </a>
-		      </li>
-		    </ul>
-		  </nav>
+						<!-- Khi đã đăng nhập -->
+						<div th:if="${session.currentUser != null}"
+							class="d-flex align-items-center">
+							<a href="/posts/create"
+								class="btn btn-primary ms-3 me-3 d-none d-md-block"> Viết
+								bài </a>
+							<div class="dropdown">
+								<button class="btn btn-link text-light dropdown-toggle"
+									type="button" id="userDropdown" data-bs-toggle="dropdown"
+									aria-expanded="false">
+									<i class="bi bi-person-circle"></i>
+								</button>
+								<ul class="dropdown-menu dropdown-menu-end"
+									aria-labelledby="userDropdown">
+									<li><h6 class="dropdown-header"
+											th:text="${session.currentUser.fullName}">User</h6></li>
+									<li><a th:href="@{/profile}" class="dropdown-item">Profile</a></li>
+									<li><a th:href="@{/post}" class="dropdown-item">My
+											Posts</a></li>
+									<li><a th:href="@{/users/comments}" class="dropdown-item">My
+											Comments</a></li>
+									<li><hr class="dropdown-divider"></li>
+									<li><a th:href="@{/logout}" class="dropdown-item">Đăng
+											xuất</a></li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
+	</nav>
 
-   </div>
-  </section>
-</main>
+	<!-- ========= MAIN ========= -->
+	<main class="pt-5 mt-4">
+		<section class="py-5">
+			<div class="container">
+				<h1>My Posts</h1>
+				<a href="/posts/create" class="btn btn-primary mb-4">Viết bài</a>
 
-<!-- ========= FOOTER ========= -->
-<footer class="footer-dark py-5 bg-dark">
-  <div class="container">
-    <div class="row g-4 mb-4">
-      <div class="col-lg-4 mb-4 mb-lg-0">
-        <div class="d-flex align-items-center mb-3">
-          <i class="bi bi-car-front-fill text-danger me-2 fs-4"></i>
-          <span class="gradient-text fw-bold fs-4">CarBlog</span>
-        </div>
-        <p class="text-muted small">
-          Your trusted source for car reviews, news, maintenance tips, and everything automotive.
-        </p>
-        <div class="d-flex gap-3 mt-3">
-          <a href="#" class="text-muted text-decoration-none"><i class="bi bi-facebook fs-5"></i></a>
-          <a href="#" class="text-muted text-decoration-none"><i class="bi bi-twitter-x fs-5"></i></a>
-          <a href="#" class="text-muted text-decoration-none"><i class="bi bi-instagram fs-5"></i></a>
-          <a href="#" class="text-muted text-decoration-none"><i class="bi bi-youtube fs-5"></i></a>
-        </div>
-      </div>
+				<!-- STATS -->
+				<div class="row g-4 mb-5">
+					<div class="col-sm-6 col-lg-3">
+						<div class="card dark-card text-center">
+							<div class="card-body">
+								<i class="bi bi-file-text text-primary fs-1 mb-3"></i>
+								<h3 class="fs-2 fw-bold text-white mb-1" th:text="${totalPosts}">0</h3>
+								<p class="text-muted mb-0">Total Posts</p>
+							</div>
+						</div>
+					</div>
+					<div class="col-sm-6 col-lg-3">
+						<div class="card dark-card text-center">
+							<div class="card-body">
+								<i class="bi bi-eye text-success fs-1 mb-3"></i>
+								<h3 class="fs-2 fw-bold text-white mb-1" th:text="${totalViews}">0</h3>
+								<p class="text-muted mb-0">Total Views</p>
+							</div>
+						</div>
+					</div>
+					<div class="col-sm-6 col-lg-3">
+						<div class="card dark-card text-center">
+							<div class="card-body">
+								<i class="bi bi-chat text-warning fs-1 mb-3"></i>
+								<h3 class="fs-2 fw-bold text-white mb-1"
+									th:text="${totalComments}">0</h3>
+								<p class="text-muted mb-0">Total Comments</p>
+							</div>
+						</div>
+					</div>
+					<div class="col-sm-6 col-lg-3">
+						<div class="card dark-card text-center">
+							<div class="card-body">
+								<i class="bi bi-heart text-danger fs-1 mb-3"></i>
+								<h3 class="fs-2 fw-bold text-white mb-1" th:text="${totalLikes}">0</h3>
+								<p class="text-muted mb-0">Total Likes</p>
+							</div>
+						</div>
+					</div>
+				</div>
 
-      <div class="col-sm-6 col-md-4 col-lg-2">
-        <h5 class="gradient-text mb-3">Categories</h5>
-        <ul class="nav flex-column">
-          <li class="nav-item" th:each="c : ${categories}">
-            <a th:href="@{/category/{id}(id=${c.categoryId})}"
-               class="nav-link text-muted p-0 mb-2" th:text="${c.name}"></a>
-          </li>
-        </ul>
-      </div>
+				<!-- FILTER form -->
+				<form th:action="@{/post}" method="get" class="card dark-card mb-4">
+					<div class="card-body">
+						<div class="row g-3 align-items-center">
+							<!-- status -->
+							<div class="col-md-3">
+								<label for="statusFilter" class="form-label text-muted small">Status</label>
+								<select name="status" class="form-select" id="statusFilter">
+									<option value="" th:selected="${status == null}">All
+										Posts</option>
+									<option value="published"
+										th:selected="${status == 'published'}">Published</option>
+									<option value="draft" th:selected="${status == 'draft'}">Draft</option>
+								</select>
+							</div>
+							<!-- category -->
+							<div class="col-md-3">
+								<label for="categoryFilter" class="form-label text-muted small">Category</label>
+								<select name="category" class="form-select" id="categoryFilter">
+									<option value="" th:selected="${categoryId == null}">All
+										Categories</option>
+									<option th:each="c : ${categories}" th:value="${c.categoryId}"
+										th:text="${c.name}"
+										th:selected="${c.categoryId == categoryId}"></option>
+								</select>
+							</div>
+							<!-- sort -->
+							<div class="col-md-3">
+								<label for="sortBy" class="form-label text-muted small">Sort
+									By</label> <select name="sort" class="form-select" id="sortBy">
+									<option value="newest" th:selected="${sort=='newest'}">Newest
+										First</option>
+									<option value="oldest" th:selected="${sort=='oldest'}">Oldest
+										First</option>
+									<option value="most-viewed"
+										th:selected="${sort=='most-viewed'}">Most Viewed</option>
+									<option value="most-commented"
+										th:selected="${sort=='most-commented'}">Most
+										Commented</option>
+								</select>
+							</div>
+							<!-- buttons -->
+							<div class="col-md-3">
+								<label class="form-label text-muted small">&nbsp;</label>
+								<div class="d-flex gap-2">
+									<button type="submit" class="btn btn-outline-primary flex-fill">
+										<i class="bi bi-funnel"></i> Filter
+									</button>
+									<a th:href="@{/post}" class="btn btn-outline-secondary"> <i
+										class="bi bi-arrow-clockwise"></i> Reset
+									</a>
+								</div>
+							</div>
+						</div>
+					</div>
+				</form>
 
-      <div class="col-sm-6 col-md-4 col-lg-2">
-        <h5 class="gradient-text mb-3">Quick Links</h5>
-        <ul class="nav flex-column">
-          <li class="nav-item"><a th:href="@{/about}"           class="nav-link text-muted p-0 mb-2">About Us</a></li>
-          <li class="nav-item"><a th:href="@{/contact}"         class="nav-link text-muted p-0 mb-2">Contact</a></li>
-          <li class="nav-item"><a th:href="@{/privacy-policy}"  class="nav-link text-muted p-0 mb-2">Privacy Policy</a></li>
-          <li class="nav-item"><a th:href="@{/terms}"           class="nav-link text-muted p-0 mb-2">Terms of Service</a></li>
-          <li class="nav-item"><a th:href="@{/sitemap}"         class="nav-link text-muted p-0 mb-2">Sitemap</a></li>
-        </ul>
-      </div>
+				<!-- POSTS list -->
+				<div class="row g-4">
+					<div class="col-12" th:each="post : ${userPosts}">
+						<div class="card mb-3">
+							<div class="row g-0">
+								<!-- 1. Ảnh bài viết -->
+								<div class="col-md-3">
+									<img th:src="@{/uploads/post/{file}(file=${post.mainImage})}"
+										class="img-fluid rounded-start" th:alt="${post.title}"
+										onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+								</div>
 
-      <div class="col-md-4 col-lg-4">
-        <h5 class="gradient-text mb-3">Contact Us</h5>
-        <ul class="list-unstyled text-muted small">
-          <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-geo-alt text-danger"></i> Nha Trang University</li>
-          <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-telephone text-success"></i> 0936841458</li>
-          <li class="d-flex align-items-center gap-2 mb-3"><i class="bi bi-envelope text-primary"></i> khanh.nn.64cntt@ntu.edu.vn</li>
-        </ul>
+								<!-- 2. Nội dung + icon -->
+								<div class="col-md-6 d-flex flex-column">
+									<div class="card-body d-flex flex-column flex-grow-1">
+										<h5 class="card-title mb-2" th:text="${post.title}">Post
+											Title</h5>
+										<p class="card-text text-muted mb-3" th:text="${post.excerpt}">Excerpt…</p>
 
-        <h5 class="gradient-text mb-3">Subscribe</h5>
-        <form th:action="@{/subscribe}" method="post" class="d-flex gap-2 mt-2">
-          <input type="email" name="email" class="form-control" placeholder="Your email" required>
-          <button type="submit" class="btn btn-primary">Subscribe</button>
-        </form>
-      </div>
-    </div>
+										<!-- nhóm icon nằm dưới cùng -->
+										<div
+											class="mt-auto d-flex align-items-center gap-3 small text-muted">
+											<span> <i class="bi bi-eye"></i> <span
+												th:text="${post.viewCount}">0</span>
+											</span> <span> <i class="bi bi-chat"></i> <span
+												th:text="${#lists.size(post.comments)}">0</span>
+											</span>
+										</div>
+									</div>
+								</div>
 
-    <div class="border-top border-dark pt-4 text-center text-muted small">
-      © 2025 CarBlog. All rights reserved.
-    </div>
-  </div>
-</footer>
+								<!-- 3. Nút hành động -->
+								<div class="col-md-3 d-flex align-items-center">
+									<div class="w-100">
+										<a th:href="@{/posts/detail/{id}(id=${post.postId})}"
+											class="btn btn-outline-primary w-100 mb-2">View</a> <a
+											th:href="@{'/posts/' + ${post.postId} + '/edit'}"
+											class="btn btn-outline-warning w-100 mb-2">Edit</a>
+										<button class="btn btn-outline-danger w-100"
+											onclick="confirmDelete(this)"
+											th:data-post-id="${post.postId}"
+											th:data-post-title="${post.title}">Delete</button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
 
-<!-- ========= DELETE MODAL ========= -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content bg-dark">
-      <div class="modal-header border-dark">
-        <h5 class="modal-title text-white" id="deleteModalLabel">Confirm Delete</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body text-white">
-        <p>Are you sure you want to delete the post "<span id="deletePostTitle"></span>"?</p>
-        <p class="text-muted small">This action cannot be undone.</p>
-      </div>
-      <div class="modal-footer border-dark">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <form id="deleteForm" method="post" style="display:inline;">
-          <button type="submit" class="btn btn-danger">Delete Post</button>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
+					<!-- Khi không có post -->
+					<div th:if="${userPosts.size() == 0}"
+						class="text-center py-5 w-100">
+						<h3>No posts found</h3>
+						<a th:href="@{/posts/new}" class="btn btn-primary">Write Your
+							First Post</a>
+					</div>
+				</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-<script>
+
+
+
+				<div class="mt-4 d-flex justify-content-center">
+					<nav>
+						<ul class="pagination pagination-dark">
+							<!-- Nút Prev -->
+							<li class="page-item"
+								th:classappend="${currentPage == 0} ? 'disabled'"><a
+								class="page-link"
+								th:href="@{|/post?page=${currentPage - 1}&status=${status != null ? status : ''}&category=${categoryId != null ? categoryId : ''}&sort=${sort}|}">
+									&laquo; </a></li>
+
+							<!-- Các trang -->
+							<li class="page-item"
+								th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+								th:classappend="${i == currentPage} ? 'active'"><a
+								class="page-link"
+								th:href="@{|/post?page=${i}&status=${status != null ? status : ''}&category=${categoryId != null ? categoryId : ''}&sort=${sort}|}"
+								th:text="${i + 1}"></a></li>
+
+							<!-- Nút Next -->
+							<li class="page-item"
+								th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+								<a class="page-link"
+								th:href="@{|/post?page=${currentPage + 1}&status=${status != null ? status : ''}&category=${categoryId != null ? categoryId : ''}&sort=${sort}|}">
+									&raquo; </a>
+							</li>
+						</ul>
+					</nav>
+				</div>
+
+			</div>
+		</section>
+	</main>
+
+	<!-- ========= FOOTER ========= -->
+	<footer class="footer-dark py-5 bg-dark">
+		<div class="container">
+			<div class="row g-4 mb-4">
+				<div class="col-lg-4 mb-4 mb-lg-0">
+					<div class="d-flex align-items-center mb-3">
+						<i class="bi bi-car-front-fill text-danger me-2 fs-4"></i> <span
+							class="gradient-text fw-bold fs-4">CarBlog</span>
+					</div>
+					<p class="text-muted small">Your trusted source for car
+						reviews, news, maintenance tips, and everything automotive.</p>
+					<div class="d-flex gap-3 mt-3">
+						<a href="#" class="text-muted text-decoration-none"><i
+							class="bi bi-facebook fs-5"></i></a> <a href="#"
+							class="text-muted text-decoration-none"><i
+							class="bi bi-twitter-x fs-5"></i></a> <a href="#"
+							class="text-muted text-decoration-none"><i
+							class="bi bi-instagram fs-5"></i></a> <a href="#"
+							class="text-muted text-decoration-none"><i
+							class="bi bi-youtube fs-5"></i></a>
+					</div>
+				</div>
+
+				<div class="col-sm-6 col-md-4 col-lg-2">
+					<h5 class="gradient-text mb-3">Categories</h5>
+					<ul class="nav flex-column">
+						<li class="nav-item" th:each="c : ${categories}"><a
+							th:href="@{/category/{id}(id=${c.categoryId})}"
+							class="nav-link text-muted p-0 mb-2" th:text="${c.name}"></a></li>
+					</ul>
+				</div>
+
+				<div class="col-sm-6 col-md-4 col-lg-2">
+					<h5 class="gradient-text mb-3">Quick Links</h5>
+					<ul class="nav flex-column">
+						<li class="nav-item"><a th:href="@{/about}"
+							class="nav-link text-muted p-0 mb-2">About Us</a></li>
+						<li class="nav-item"><a th:href="@{/contact}"
+							class="nav-link text-muted p-0 mb-2">Contact</a></li>
+						<li class="nav-item"><a th:href="@{/privacy-policy}"
+							class="nav-link text-muted p-0 mb-2">Privacy Policy</a></li>
+						<li class="nav-item"><a th:href="@{/terms}"
+							class="nav-link text-muted p-0 mb-2">Terms of Service</a></li>
+						<li class="nav-item"><a th:href="@{/sitemap}"
+							class="nav-link text-muted p-0 mb-2">Sitemap</a></li>
+					</ul>
+				</div>
+
+				<div class="col-md-4 col-lg-4">
+					<h5 class="gradient-text mb-3">Contact Us</h5>
+					<ul class="list-unstyled text-muted small">
+						<li class="d-flex align-items-center gap-2 mb-2"><i
+							class="bi bi-geo-alt text-danger"></i> Nha Trang University</li>
+						<li class="d-flex align-items-center gap-2 mb-2"><i
+							class="bi bi-telephone text-success"></i> 0936841458</li>
+						<li class="d-flex align-items-center gap-2 mb-3"><i
+							class="bi bi-envelope text-primary"></i>
+							khanh.nn.64cntt@ntu.edu.vn</li>
+					</ul>
+
+					<h5 class="gradient-text mb-3">Subscribe</h5>
+					<form th:action="@{/subscribe}" method="post"
+						class="d-flex gap-2 mt-2">
+						<input type="email" name="email" class="form-control"
+							placeholder="Your email" required>
+						<button type="submit" class="btn btn-primary">Subscribe</button>
+					</form>
+				</div>
+			</div>
+
+			<div class="border-top border-dark pt-4 text-center text-muted small">
+				© 2025 CarBlog. All rights reserved.</div>
+		</div>
+	</footer>
+
+	<!-- ========= DELETE MODAL ========= -->
+	<div class="modal fade" id="deleteModal" tabindex="-1"
+		aria-labelledby="deleteModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content bg-dark">
+				<div class="modal-header border-dark">
+					<h5 class="modal-title text-white" id="deleteModalLabel">Confirm
+						Delete</h5>
+					<button type="button" class="btn-close btn-close-white"
+						data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body text-white">
+					<p>
+						Are you sure you want to delete the post "<span
+							id="deletePostTitle"></span>"?
+					</p>
+					<p class="text-muted small">This action cannot be undone.</p>
+				</div>
+				<div class="modal-footer border-dark">
+					<button type="button" class="btn btn-secondary"
+						data-bs-dismiss="modal">Cancel</button>
+					<form id="deleteForm" method="post" style="display: inline;">
+						<button type="submit" class="btn btn-danger">Delete Post</button>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script
+		src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+		crossorigin="anonymous"></script>
+	<script>
   /* delete modal */
   function confirmDelete(btn) {
     const id    = btn.getAttribute('data-post-id');

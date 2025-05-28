@@ -1,15 +1,21 @@
 package com.thiCK.CarBlog.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 import com.thiCK.CarBlog.entity.Comment;
 import com.thiCK.CarBlog.entity.Post;
 import com.thiCK.CarBlog.entity.User;
 import com.thiCK.CarBlog.service.CommentService;
 import com.thiCK.CarBlog.service.PostService;
+
 import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/comments")
