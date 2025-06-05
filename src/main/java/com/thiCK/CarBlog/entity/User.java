@@ -1,4 +1,3 @@
-// src/main/java/com/thiCK/CarBlog/entity/User.java
 package com.thiCK.CarBlog.entity;
 
 import jakarta.persistence.*;
@@ -30,19 +29,19 @@ public class User {
     private String role = "USER";
 
     @Column(name = "phone_number", length = 20)
-    private String phoneNumber; // Cho phép null
+    private String phoneNumber; 
 
     @Column(name = "gender", length = 10)
-    private String gender; // Cho phép null
+    private String gender;
 
     @Column(name = "avatar", length = 500)
-    private String avatar; // Cho phép null
+    private String avatar; 
 
     @Column(name = "birth_date")
-    private LocalDate birthDate; // Cho phép null
+    private LocalDate birthDate; 
 
     @Column(name = "bio", columnDefinition = "NVARCHAR(MAX)")
-    private String bio; // Cho phép null
+    private String bio; 
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -54,6 +53,8 @@ public class User {
     // GETTER - SETTER
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
+    public Long getUserId() { return id; } // thêm cho phù hợp với Controller
 
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }

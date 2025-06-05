@@ -192,6 +192,7 @@
 							</p>
 
 							<!-- Loop comment cha -->
+							<!-- Loop comment cha -->
 							<div th:each="cmt : ${post.comments}"
 								th:if="${cmt.parentComment == null}"
 								class="d-flex gap-3 mb-4 pb-4 border-bottom border-dark">
@@ -214,6 +215,8 @@
 									<p class="mb-2" th:text="${cmt.content}">Nội dung</p>
 
 									<div class="d-flex gap-3 align-items-center">
+
+										<!-- nút Like -->
 										<form th:if="${session.currentUser != null}"
 											th:action="@{/comments/like}" method="post" class="d-inline">
 											<input type="hidden" name="commentId"
@@ -232,6 +235,7 @@
 												th:text="${cmt.likes}">0</span>
 										</button>
 
+										<!-- nút Reply -->
 										<button th:if="${session.currentUser != null}"
 											class="btn btn-sm btn-link text-muted p-0" type="button"
 											data-bs-toggle="collapse"
@@ -240,8 +244,26 @@
 										<button th:if="${session.currentUser == null}" type="button"
 											onclick="requireLogin()"
 											class="btn btn-sm btn-link text-muted p-0">Reply</button>
+
+										<!-- ===== CHÈN NÚT XÓA ===== -->
+										<form
+											th:if="${session.currentUser != null
+                          and (session.currentUser.id == cmt.user.id
+                               or #strings.equalsIgnoreCase(session.currentUser.role,'ADMIN'))}"
+											th:action="@{/comments/delete/{id}(id=${cmt.commentId})}"
+											method="post" class="d-inline ms-3"
+											onsubmit="return confirm('Bạn có chắc chắn muốn xóa comment này không?');">
+											<input type="hidden" name="postId" th:value="${post.postId}" />
+											<button type="submit"
+												class="btn btn-sm btn-outline-danger p-0">
+												<i class="bi bi-trash"></i> Xóa
+											</button>
+										</form>
+										<!-- ===== KẾT THÚC XÓA ===== -->
+
 									</div>
 
+									<!-- Form reply (collapse) -->
 									<div class="collapse mt-3"
 										th:id="'replyForm__' + ${cmt.commentId}">
 										<form th:action="@{/comments/reply}" method="post">
@@ -261,6 +283,7 @@
 										<img
 											th:src="@{'https://i.pravatar.cc/40?u=' + ${rep.user.id}}"
 											alt="User" width="40" height="40" class="rounded-circle">
+
 										<div class="w-100">
 											<div
 												class="d-flex justify-content-between align-items-center mb-1">
@@ -272,8 +295,11 @@
 												<small class="text-muted"
 													th:text="${#temporals.format(rep.createdAt, 'dd/MM/yyyy HH:mm')}">...</small>
 											</div>
+
 											<p class="mb-2" th:text="${rep.content}">...</p>
 											<div class="d-flex gap-3 align-items-center">
+
+												<!-- nút Like cho reply -->
 												<form th:if="${session.currentUser != null}"
 													th:action="@{/comments/like}" method="post"
 													class="d-inline">
@@ -292,11 +318,31 @@
 													<i class="bi bi-hand-thumbs-up"></i> <span
 														th:text="${rep.likes}">0</span>
 												</button>
+
+												<!-- ===== NÚT XÓA CHO REPLY ===== -->
+												<form
+													th:if="${session.currentUser != null
+                                  and (session.currentUser.id == rep.user.id
+                                       or #strings.equalsIgnoreCase(session.currentUser.role,'ADMIN'))}"
+													th:action="@{/comments/delete/{id}(id=${rep.commentId})}"
+													method="post" class="d-inline ms-3"
+													onsubmit="return confirm('Bạn có chắc chắn muốn xóa reply này không?');">
+													<input type="hidden" name="postId"
+														th:value="${post.postId}" />
+													<button type="submit"
+														class="btn btn-sm btn-outline-danger p-0">
+														<i class="bi bi-trash"></i> Xóa
+													</button>
+												</form>
+												<!-- ===== KẾT THÚC XÓA ===== -->
+
 											</div>
 										</div>
 									</div>
+
 								</div>
 							</div>
+
 						</div>
 					</div>
 

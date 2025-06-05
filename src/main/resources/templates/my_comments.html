@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Comments – CarBlog</title>
+  <meta name="description" content="View and manage all your comments on CarBlog posts">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+        crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+  <!-- Header/Navigation -->
+  <nav class="navbar navbar-expand-lg fixed-top navbar-dark shadow-sm">
+    <div class="container">
+      <a th:href="@{/}" class="navbar-brand d-flex align-items-center">
+        <i class="bi bi-car-front-fill text-danger me-2 fs-4"></i>
+        <span class="gradient-text fw-bold">CarBlog</span>
+      </a>
+
+      <button class="navbar-toggler" type="button"
+              data-bs-toggle="collapse" data-bs-target="#navbarMain"
+              aria-controls="navbarMain" aria-expanded="false"
+              aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarMain">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a th:href="@{/}" class="nav-link">Home</a>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button"
+               data-bs-toggle="dropdown" aria-expanded="false">
+              Categories
+            </a>
+            <ul class="dropdown-menu">
+              <li><a th:href="@{/categories/1}" class="dropdown-item">Reviews</a></li>
+              <li><a th:href="@{/categories/2}" class="dropdown-item">News</a></li>
+              <li><a th:href="@{/categories/3}" class="dropdown-item">Maintenance</a></li>
+              <li><a th:href="@{/categories/4}" class="dropdown-item">Modifications</a></li>
+              <li><a th:href="@{/categories/5}" class="dropdown-item">Classic Cars</a></li>
+            </ul>
+          </li>
+          <li class="nav-item">
+            <a th:href="@{/about}" class="nav-link">About</a>
+          </li>
+          <li class="nav-item">
+            <a th:href="@{/contact}" class="nav-link">Contact</a>
+          </li>
+        </ul>
+
+        <form class="d-none d-md-flex me-3 position-relative">
+          <input type="search" class="form-control rounded-pill"
+                 placeholder="Search your comments…" aria-label="Search">
+          <i class="bi bi-search position-absolute top-50 start-0
+                    translate-middle-y ms-3 text-muted"></i>
+        </form>
+
+        <div class="d-flex align-items-center">
+          <!-- Mobile search button -->
+          <button class="btn btn-link text-light me-2 d-md-none">
+            <i class="bi bi-search"></i>
+          </button>
+
+          <!-- User menu (logged in state) -->
+          <div class="d-flex align-items-center">
+            <a th:href="@{/posts/new}"
+               class="btn btn-primary ms-3 me-3 d-none d-md-block">
+              Viết bài
+            </a>
+            <div class="dropdown">
+              <button class="btn btn-link text-light dropdown-toggle"
+                      type="button" id="userDropdown"
+                      data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                <li><h6 class="dropdown-header"
+                        th:text="${session.currentUser.fullName}">User</h6></li>
+                <li><a th:href="@{/profile}" class="dropdown-item">Profile</a></li>
+                <li><a th:href="@{/users/posts}" class="dropdown-item">My Posts</a></li>
+                <li><a th:href="@{/users/comments}" class="dropdown-item active">My Comments</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a th:href="@{/logout}" class="dropdown-item">Đăng xuất</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="flex-grow-1 pt-5 mt-4">
+    <!-- Page Header -->
+    <section class="py-5 hero-pattern">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-lg-8">
+            <h1 class="fs-1 fw-bold gradient-text mb-3">My Comments</h1>
+            <p class="text-muted fs-5 mb-4">View and manage all your comments on CarBlog posts</p>
+          </div>
+          <div class="col-lg-4 text-lg-end">
+            <div class="d-flex gap-2 justify-content-lg-end">
+              <button class="btn btn-outline-primary" id="exportCommentsBtn">
+                <i class="bi bi-download me-2"></i>Export Comments
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Comments Management Section -->
+    <section class="py-5 dark-section">
+      <div class="container">
+        <!-- Stats Cards -->
+        <div class="row g-4 mb-5">
+          <div class="col-sm-6 col-lg-3">
+            <div class="card dark-card text-center">
+              <div class="card-body">
+                <i class="bi bi-chat-text text-primary fs-1 mb-3"></i>
+                <h3 class="fs-2 fw-bold text-white mb-1" th:text="${totalComments}">45</h3>
+                <p class="text-muted mb-0">Total Comments</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-3">
+            <div class="card dark-card text-center">
+              <div class="card-body">
+                <i class="bi bi-file-text text-success fs-1 mb-3"></i>
+                <h3 class="fs-2 fw-bold text-white mb-1" th:text="${postsCommented}">12</h3>
+                <p class="text-muted mb-0">Posts Commented</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-3">
+            <div class="card dark-card text-center">
+              <div class="card-body">
+                <i class="bi bi-heart text-danger fs-1 mb-3"></i>
+                <h3 class="fs-2 fw-bold text-white mb-1" th:text="${totalLikes}">128</h3>
+                <p class="text-muted mb-0">Likes Received</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-3">
+            <div class="card dark-card text-center">
+              <div class="card-body">
+                <i class="bi bi-reply text-warning fs-1 mb-3"></i>
+                <h3 class="fs-2 fw-bold text-white mb-1" th:text="${totalReplies}">23</h3>
+                <p class="text-muted mb-0">Replies Received</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter and Sort Controls -->
+        <div class="card dark-card mb-4">
+          <div class="card-body">
+            <div class="row g-3 align-items-center">
+              <div class="col-md-3">
+                <label for="postFilter" class="form-label text-muted small">Filter by Post</label>
+                <select class="form-select" id="postFilter">
+                  <option value="">All Posts</option>
+                  <option th:each="post : ${commentedPosts}" 
+                          th:value="${post.postId}" 
+                          th:text="${post.title}">Post Title</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label for="dateFilter" class="form-label text-muted small">Date Range</label>
+                <select class="form-select" id="dateFilter">
+                  <option value="">All Time</option>
+                  <option value="today">Today</option>
+                  <option value="week">This Week</option>
+                  <option value="month">This Month</option>
+                  <option value="year">This Year</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label for="sortBy" class="form-label text-muted small">Sort By</label>
+                <select class="form-select" id="sortBy">
+                  <option value="newest">Newest First</option>
+                  <option value="oldest">Oldest First</option>
+                  <option value="most-liked">Most Liked</option>
+                  <option value="most-replied">Most Replied</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label text-muted small">&nbsp;</label>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-outline-primary flex-fill">
+                    <i class="bi bi-funnel"></i> Filter
+                  </button>
+                  <button class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-clockwise"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Comments List -->
+        <div class="row g-4">
+          <div class="col-12" th:each="comment : ${userComments}">
+            <div class="card dark-card">
+              <div class="card-body">
+                <!-- Comment Header -->
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <div class="flex-grow-1">
+                    <h5 class="mb-1">
+                      <a th:href="@{'/posts/' + ${comment.post.postId}}" 
+                         class="text-decoration-none text-white" 
+                         th:text="${comment.post.title}">Post Title</a>
+                    </h5>
+                    <div class="d-flex align-items-center gap-3 small text-muted">
+                      <span>
+                        <i class="bi bi-calendar3 me-1"></i>
+                        <span th:text="${#temporals.format(comment.createdAt, 'dd MMM yyyy, HH:mm')}">Date</span>
+                      </span>
+                      <span class="category-badge" th:text="${comment.post.category.name}">Category</span>
+                    </div>
+                  </div>
+                  <div class="dropdown">
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" 
+                            type="button" 
+                            data-bs-toggle="dropdown" 
+                            aria-expanded="false">
+                      <i class="bi bi-three-dots"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li>
+                        <a class="dropdown-item" 
+                           th:href="@{'/posts/' + ${comment.post.postId} + '#comment-' + ${comment.commentId}}">
+                          <i class="bi bi-eye me-2"></i>View in Post
+                        </a>
+                      </li>
+                      <li>
+                        <button class="dropdown-item" 
+                                onclick="editComment(this)" 
+                                th:data-comment-id="${comment.commentId}"
+                                th:data-comment-content="${comment.content}">
+                          <i class="bi bi-pencil me-2"></i>Edit
+                        </button>
+                      </li>
+                      <li><hr class="dropdown-divider"></li>
+                      <li>
+                        <button class="dropdown-item text-danger" 
+                                onclick="deleteComment(this)" 
+                                th:data-comment-id="${comment.commentId}">
+                          <i class="bi bi-trash me-2"></i>Delete
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <!-- Comment Content -->
+                <div class="comment-content mb-3">
+                  <p class="text-light mb-0" th:text="${comment.content}">
+                    This is the comment content. It can be multiple lines and contain various automotive insights and opinions about the post.
+                  </p>
+                </div>
+
+                <!-- Comment Stats and Actions -->
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="d-flex align-items-center gap-3 small text-muted">
+                    <span>
+                      <i class="bi bi-heart me-1"></i>
+                      <span th:text="${comment.likeCount}">5</span> likes
+                    </span>
+                    <span>
+                      <i class="bi bi-reply me-1"></i>
+                      <span th:text="${#lists.size(comment.replies)}">2</span> replies
+                    </span>
+                  </div>
+                  <div class="d-flex gap-2">
+                    <a th:href="@{'/posts/' + ${comment.post.postId} + '#comment-' + ${comment.commentId}}" 
+                       class="btn btn-outline-primary btn-sm">
+                      <i class="bi bi-arrow-right me-1"></i>Go to Post
+                    </a>
+                  </div>
+                </div>
+
+                <!-- Replies Preview (if any) -->
+                    <div th:if="${comment.replies != null and comment.replies.size() > 0}" class="mt-3 pt-3 border-top border-dark">
+                  <h6 class="text-muted small mb-2">Recent Replies:</h6>
+                  <div th:each="reply, iterStat : ${comment.replies}" th:if="${iterStat.index < 2}" class="mb-2">
+                    <div class="d-flex gap-2">
+                      <img 
+                        th:src="${reply.user.avatar != null and reply.user.avatar != '' 
+                                  ? reply.user.avatar 
+                                  : '/images/default-avatar.png'}" 
+                        class="rounded-circle" 
+                        style="width: 24px; height: 24px; object-fit: cover;" 
+                        th:alt="${reply.user.fullName}" />
+                      <div class="flex-grow-1">
+                        <div class="small">
+                          <span class="text-white fw-medium" th:text="${reply.user.fullName}">User Name</span>
+                          <span class="text-muted ms-2" th:text="${#temporals.format(reply.createdAt, 'dd MMM')}">Date</span>
+                        </div>
+                        <p class="small text-muted mb-0" th:text="${reply.content}">Reply content here...</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div th:if="${comment.replies.size() > 2}" class="small text-muted">
+                    <a 
+                      th:href="@{'/posts/' + ${comment.post.postId} + '#comment-' + ${comment.commentId}}" 
+                      class="text-decoration-none">
+                      View <span th:text="${comment.replies.size() - 2}">3</span> more replies...
+                    </a>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div th:if="${userComments == null or userComments.size() == 0}" class="text-center py-5">
+          <i class="bi bi-chat-text text-muted" style="font-size: 4rem;"></i>
+          <h3 class="text-muted mt-3">No comments found</h3>
+          <p class="text-muted">You haven't commented on any posts yet. Start engaging with our automotive community!</p>
+          <a th:href="@{/}" class="btn btn-primary mt-3">
+            <i class="bi bi-house me-2"></i>Explore Posts
+          </a>
+        </div>
+
+        <!-- Pagination -->
+        <nav aria-label="Comments pagination" class="mt-5" th:if="${totalPages > 1}">
+          <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+              <a class="page-link" th:href="@{/users/comments(page=${currentPage - 1})}" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+            </li>
+            <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}" 
+                class="page-item" 
+                th:classappend="${i == currentPage} ? 'active'">
+              <a class="page-link" th:href="@{/users/comments(page=${i})}" th:text="${i + 1}">1</a>
+            </li>
+            <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+              <a class="page-link" th:href="@{/users/comments(page=${currentPage + 1})}" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer-dark py-5 bg-dark">
+    <div class="container">
+      <div class="row g-4 mb-4">
+        <div class="col-lg-4 mb-4 mb-lg-0">
+          <div class="d-flex align-items-center mb-3">
+            <i class="bi bi-car-front-fill text-danger me-2 fs-4"></i>
+            <span class="gradient-text fw-bold fs-4">CarBlog</span>
+          </div>
+          <p class="text-muted small">
+            Your trusted source for car reviews, news, maintenance tips, and everything automotive. Driving the future
+            of automotive content since 2020.
+          </p>
+          <div class="d-flex gap-3 mt-3">
+            <a href="#" class="text-muted text-decoration-none"><i class="bi bi-facebook fs-5"></i></a>
+            <a href="#" class="text-muted text-decoration-none"><i class="bi bi-twitter-x fs-5"></i></a>
+            <a href="#" class="text-muted text-decoration-none"><i class="bi bi-instagram fs-5"></i></a>
+            <a href="#" class="text-muted text-decoration-none"><i class="bi bi-youtube fs-5"></i></a>
+          </div>
+        </div>
+        <div class="col-sm-6 col-md-4 col-lg-2">
+          <h5 class="gradient-text mb-3">Categories</h5>
+          <ul class="nav flex-column">
+            <li class="nav-item" th:each="c: ${categories}">
+              <a th:href="@{/category/{id}(id=${c.categoryId})}"
+                 class="nav-link text-muted p-0 mb-2"
+                 th:text="${c.name}"></a>
+            </li>
+          </ul>
+        </div>
+        <div class="col-sm-6 col-md-4 col-lg-2">
+          <h5 class="gradient-text mb-3">Quick Links</h5>
+          <ul class="nav flex-column">
+            <li class="nav-item"><a th:href="@{/about}" class="nav-link text-muted p-0 mb-2">About Us</a></li>
+            <li class="nav-item"><a th:href="@{/contact}" class="nav-link text-muted p-0 mb-2">Contact</a></li>
+            <li class="nav-item"><a th:href="@{/privacy-policy}" class="nav-link text-muted p-0 mb-2">Privacy Policy</a></li>
+            <li class="nav-item"><a th:href="@{/terms}" class="nav-link text-muted p-0 mb-2">Terms of Service</a></li>
+            <li class="nav-item"><a th:href="@{/sitemap}" class="nav-link text-muted p-0 mb-2">Sitemap</a></li>
+          </ul>
+        </div>
+        <div class="col-md-4 col-lg-4">
+          <h5 class="gradient-text mb-3">Contact Us</h5>
+          <ul class="list-unstyled text-muted small">
+            <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-geo-alt text-danger"></i> Nha Trang University</li>
+            <li class="d-flex align-items-center gap-2 mb-2"><i class="bi bi-telephone text-success"></i> 0936841458</li>
+            <li class="d-flex align-items-center gap-2 mb-3"><i class="bi bi-envelope text-primary"></i> khanh.nn.64cntt@ntu.edu.vn</li>
+          </ul>
+          <h5 class="gradient-text mb-3">Subscribe</h5>
+          <form th:action="@{/subscribe}" method="post" class="d-flex gap-2 mt-2">
+            <input type="email" name="email" class="form-control" placeholder="Your email" required>
+            <button type="submit" class="btn btn-primary">Subscribe</button>
+          </form>
+        </div>
+      </div>
+      <div class="border-top border-dark pt-4 text-center text-muted small">
+        © 2025 CarBlog. All rights reserved. Designed with ❤️ for car enthusiasts.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Edit Comment Modal -->
+  <div class="modal fade" id="editCommentModal" tabindex="-1" aria-labelledby="editCommentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content bg-dark">
+        <div class="modal-header border-dark">
+          <h5 class="modal-title text-white" id="editCommentModalLabel">Edit Comment</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="editCommentForm" method="post">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="editCommentContent" class="form-label text-muted">Comment</label>
+              <textarea class="form-control" id="editCommentContent" name="content" rows="4" required></textarea>
+            </div>
+          </div>
+          <div class="modal-footer border-dark">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Comment Modal -->
+  <div class="modal fade" id="deleteCommentModal" tabindex="-1" aria-labelledby="deleteCommentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content bg-dark">
+        <div class="modal-header border-dark">
+          <h5 class="modal-title text-white" id="deleteCommentModalLabel">Delete Comment</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-white">
+          <p>Are you sure you want to delete this comment?</p>
+          <p class="text-muted small">This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer border-dark">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <form id="deleteCommentForm" method="post" style="display: inline;">
+            <button type="submit" class="btn btn-danger">Delete Comment</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // --------------------------------
+    // Chức năng Edit Comment
+    // --------------------------------
+    window.editComment = function(button) {
+      const commentId = button.getAttribute('data-comment-id');
+      const commentContent = button.getAttribute('data-comment-content');
+      
+      // 1. Điền nội dung hiện tại của comment vào textarea
+      document.getElementById('editCommentContent').value = commentContent;
+      
+      // 2. Gán action cho form để POST đến /comments/edit/{commentId}
+      document.getElementById('editCommentForm').action = '/comments/edit/' + commentId;
+      
+      // 3. Hiển thị modal
+      const modal = new bootstrap.Modal(document.getElementById('editCommentModal'));
+      modal.show();
+    };
+
+    // --------------------------------
+    // Chức năng Delete Comment
+    // --------------------------------
+    window.deleteComment = function(button) {
+      const commentId = button.getAttribute('data-comment-id');
+      
+      // Gán action cho form để POST đến /comments/delete/{commentId}
+      document.getElementById('deleteCommentForm').action = '/comments/delete/' + commentId;
+      
+      // Hiển thị modal
+      const modal = new bootstrap.Modal(document.getElementById('deleteCommentModal'));
+      modal.show();
+    };
+
+    // --------------------------------
+    // Chức năng Filter Comments
+    // --------------------------------
+    const postFilter = document.getElementById('postFilter');
+    const dateFilter = document.getElementById('dateFilter');
+    const sortBy = document.getElementById('sortBy');
+    
+    function applyFilters() {
+      const params = new URLSearchParams();
+      if (postFilter.value) params.append('post', postFilter.value);
+      if (dateFilter.value) params.append('date', dateFilter.value);
+      if (sortBy.value) params.append('sort', sortBy.value);
+      
+      window.location.href = '/users/comments?' + params.toString();
+    }
+    
+    document.querySelector('.btn-outline-primary').addEventListener('click', applyFilters);
+
+    // --------------------------------
+    // Chức năng Export Comments
+    // --------------------------------
+    document.getElementById('exportCommentsBtn').addEventListener('click', function() {
+      // Chỉ giả lập download CSV
+      const link = document.createElement('a');
+      link.href = '/users/comments/export';
+      link.download = 'my-comments.csv';
+      link.click();
+    });
+
+    // --------------------------------
+    // Chức năng Search Comments (enter key)
+    // --------------------------------
+    const searchInput = document.querySelector('input[type="search"]');
+    if (searchInput) {
+      searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const searchTerm = this.value.trim();
+          if (searchTerm) {
+            window.location.href = '/users/comments?search=' + encodeURIComponent(searchTerm);
+          }
+        }
+      });
+    }
+  });
+</script>
+
+  
+  <!-- Hàm JavaScript để điền nội dung và gán action cho form -->
+<script>
+  /**
+   * Mở modal và gán dynamic action cho form:
+   * @param commentId  ID của comment cần sửa
+   * @param currentContent  Nội dung hiện tại của comment (đã được escape JavaScript)
+   */
+  function openEditModal(commentId, currentContent) {
+    // 1. Điền nội dung cũ vào textarea
+    document.getElementById('editCommentContent').value = currentContent;
+
+    // 2. Gán động action cho form (POST về /comments/edit/{commentId})
+    document.getElementById('editCommentForm').action = '/comments/edit/' + commentId;
+
+    // 3. Hiển thị modal
+    const modal = new bootstrap.Modal(document.getElementById('editCommentModal'));
+    modal.show();
+  }
+</script>
+
+</body>
+</html>

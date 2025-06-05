@@ -111,6 +111,7 @@ CREATE TABLE dbo.Comments (
     comment_id   INT            IDENTITY(1,1) PRIMARY KEY,
     content      NVARCHAR(MAX)  NOT NULL,
     created_at   DATETIME2      NOT NULL DEFAULT GETDATE(),
+	like_count INT NOT NULL CONSTRAINT DF_Comments_LikeCount DEFAULT 0;
 
     -- nếu xóa user → set null
     user_id      INT            NULL,
@@ -124,18 +125,12 @@ CREATE TABLE dbo.Comments (
 	likes INT NOT NULL CONSTRAINT DF_Comments_Likes DEFAULT 0,
     CONSTRAINT FK_Comments_Posts FOREIGN KEY(post_id)
         REFERENCES dbo.Posts(post_id)
-        ON DELETE NO ACTION
+        ON DELETE NO ACTION,
+
+
+
+
 );
-ALTER TABLE Comments
-  DROP CONSTRAINT FK_Comments_ParentComment;
-GO
-
-
-
-
-
-
-
 
 -- Indexes (tùy chọn)
 CREATE INDEX IDX_Posts_CreatedAt    ON dbo.Posts(created_at);
@@ -145,3 +140,5 @@ GO
 UPDATE Posts
 SET main_image = 'post/' + REPLACE(main_image, '/uploads/', '')
 WHERE main_image LIKE '/uploads/%';
+
+

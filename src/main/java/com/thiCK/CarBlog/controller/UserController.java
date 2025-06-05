@@ -1,12 +1,15 @@
 package com.thiCK.CarBlog.controller;
 
+import com.thiCK.CarBlog.entity.Comment;
 import com.thiCK.CarBlog.entity.Post;
 import com.thiCK.CarBlog.entity.User;
 import com.thiCK.CarBlog.service.CategoryService;
+import com.thiCK.CarBlog.service.CommentService;
 import com.thiCK.CarBlog.service.PostService;
 import com.thiCK.CarBlog.service.UserService;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
@@ -27,21 +30,21 @@ public class UserController {
     private final PostService postService;
     private final CategoryService categoryService;
     private final UserService userService;
+    private final CommentService commentService;
     private final ServletContext servletContext;
 
     public UserController(PostService postService,
                           CategoryService categoryService,
                           UserService userService,
+                          CommentService commentService,
                           ServletContext servletContext) {
         this.postService     = postService;
         this.categoryService = categoryService;
         this.userService     = userService;
+        this.commentService  = commentService;
         this.servletContext  = servletContext;
     }
 
-    /**
-     * Trang My Posts của user
-     */
     @GetMapping("/post")
     public String myPosts(HttpSession session,
                           Model model,
@@ -55,10 +58,8 @@ public class UserController {
             return "redirect:/login";
         }
 
-        // Lấy tất cả bài của user
         List<Post> userPosts = postService.findAllByUser(currentUser);
 
-        // Lọc theo status và category nếu có
         List<Post> filtered = userPosts.stream()
             .filter(p -> !StringUtils.hasText(status) || p.getStatus().equals(status))
             .filter(p -> categoryId == null 
@@ -66,7 +67,6 @@ public class UserController {
                           && p.getCategory().getCategoryId().equals(categoryId)))
             .collect(Collectors.toList());
 
-        // Sắp xếp
         Comparator<Post> comp;
         switch (sort) {
             case "oldest"         -> comp = Comparator.comparing(Post::getCreatedAt);
@@ -76,7 +76,6 @@ public class UserController {
         }
         filtered.sort(comp);
 
-        // PHÂN TRANG
         int size = 6;
         int totalPosts = filtered.size();
         int totalPages = (int) Math.ceil((double) totalPosts / size);
@@ -84,12 +83,10 @@ public class UserController {
         int toIndex   = Math.min(fromIndex + size, totalPosts);
         List<Post> pagePosts = filtered.subList(fromIndex, toIndex);
 
-        // Tính số liệu thống kê
         int totalViews    = filtered.stream().mapToInt(Post::getViewCount).sum();
         int totalComments = filtered.stream().mapToInt(p -> p.getComments().size()).sum();
         int totalLikes    = filtered.stream().mapToInt(Post::getLikeCount).sum();
 
-        // Gửi dữ liệu ra view
         model.addAttribute("userPosts",     pagePosts);
         model.addAttribute("categories",    categoryService.findAll());
         model.addAttribute("status",        status);
@@ -105,11 +102,35 @@ public class UserController {
         return "post";
     }
 
+    @GetMapping("/users/comments")
+    public String myComments(Model model, HttpSession session,
+                             @RequestParam(defaultValue = "0") int page,
+                             @RequestParam(required = false) Long post,
+                             @RequestParam(required = false) String date,
+                             @RequestParam(required = false) String sort,
+                             @RequestParam(required = false) String search) {
 
-    /**
-     * Hiển thị trang Profile
-     * Nếu ?success có mặt sẽ trả về model flag để bạn show toast hoặc badge
-     */
+        User currentUser = (User) session.getAttribute("currentUser");
+        if (currentUser == null) {
+            return "redirect:/login";
+        }
+
+        Page<Comment> commentsPage = commentService.getCommentsByUser(currentUser.getUserId(), post, date, sort, search, page);
+
+        model.addAttribute("userComments", commentsPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", commentsPage.getTotalPages());
+
+        model.addAttribute("totalComments", commentService.countByUser(currentUser.getUserId()));
+        model.addAttribute("postsCommented", commentService.countPostsCommentedByUser(currentUser.getUserId()));
+        model.addAttribute("totalLikes", commentService.countLikesByUser(currentUser.getUserId()));
+        model.addAttribute("totalReplies", commentService.countRepliesByUser(currentUser.getUserId()));
+
+        model.addAttribute("commentedPosts", commentService.getPostsUserCommented(currentUser.getUserId()));
+
+        return "my_comments";
+    }
+
     @GetMapping("/profile")
     public String showProfile(HttpSession session,
                               Model model,
@@ -119,7 +140,6 @@ public class UserController {
             return "redirect:/login";
         }
 
-        // Tính stats
         List<Post> userPosts = postService.findAllByUser(currentUser);
         Map<String,Integer> userStats = new HashMap<>();
         userStats.put("totalPosts",    userPosts.size());
@@ -133,9 +153,6 @@ public class UserController {
         return "profile";
     }
 
-    /**
-     * Xử lý POST từ form update Profile (có upload avatar)
-     */
     @PostMapping("/profile/update")
     public String updateProfile(
             @RequestParam(value = "fullName",    required = false) String      fullName,
@@ -152,7 +169,6 @@ public class UserController {
             return "redirect:/login";
         }
 
-        // Cập nhật thông tin text
         if (StringUtils.hasText(fullName))    currentUser.setFullName(fullName);
         if (StringUtils.hasText(phoneNumber)) currentUser.setPhoneNumber(phoneNumber);
         if (StringUtils.hasText(gender))      currentUser.setGender(gender);
@@ -163,30 +179,23 @@ public class UserController {
         }
         currentUser.setBio(bio);
 
-        // Upload avatar nếu có
         if (avatarFile != null && !avatarFile.isEmpty()) {
-            // Đường dẫn thật đến folder trong webapp: .../webapps/ROOT/uploads/avatars/
             String realPath  = servletContext.getRealPath("/uploads/avatars/");
             File   uploadDir = new File(realPath);
             if (!uploadDir.exists()) uploadDir.mkdirs();
 
-            // Tạo filename ngẫu nhiên + gốc
             String filename = UUID.randomUUID() + "_" +
                     StringUtils.cleanPath(avatarFile.getOriginalFilename());
             File dest = new File(uploadDir, filename);
 
-            // Ghi file
             avatarFile.transferTo(dest);
 
-            // Lưu đường dẫn public (so với webroot)
             currentUser.setAvatar("/uploads/avatars/" + filename);
         }
 
-        // Lưu vào DB & cập nhật session
         userService.save(currentUser);
         session.setAttribute("currentUser", currentUser);
 
-        // Redirect về /profile?success để show thông báo
         return "redirect:/profile?success";
     }
 

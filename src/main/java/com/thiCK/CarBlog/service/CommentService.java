@@ -3,9 +3,9 @@ package com.thiCK.CarBlog.service;
 import com.thiCK.CarBlog.entity.Comment;
 import com.thiCK.CarBlog.entity.Post;
 import com.thiCK.CarBlog.repository.CommentRepository;
-import com.thiCK.CarBlog.repository.PostRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,13 +16,6 @@ public class CommentService {
 
     @Autowired
     private CommentRepository commentRepository;
-
-    @Autowired
-    private PostRepository postRepository;
-
-    public List<Comment> getCommentsByPost(Post post) {
-        return commentRepository.findByPost(post);
-    }
 
     public Optional<Comment> getCommentById(Integer id) {
         return commentRepository.findById(id);
@@ -37,7 +30,40 @@ public class CommentService {
         commentRepository.deleteById(id);
     }
 
-    public Post getPostById(Integer id) {
-        return postRepository.findById(id).orElse(null);
+    public Page<Comment> getCommentsByUser(Long userId, Long postId, String date, String sort, String search, int page) {
+        Pageable pageable = PageRequest.of(page, 6, getSortOrder(sort));
+        return commentRepository.findFilteredComments(userId, postId, date, search, pageable);
+    }
+
+    private Sort getSortOrder(String sort) {
+        if (sort == null) sort = "newest";
+        return switch (sort) {
+            case "oldest"       -> Sort.by("createdAt").ascending();
+            case "most-liked"   -> Sort.by("likeCount").descending();
+            case "most-replied" -> Sort.by("replies.size").descending(); // nếu lỗi, hãy xóa dòng này
+            default             -> Sort.by("createdAt").descending();
+        };
+    }
+
+    // Thống kê
+    public int countByUser(Long userId) {
+        return commentRepository.countByUser_Id(userId);
+    }
+
+    public int countPostsCommentedByUser(Long userId) {
+        return commentRepository.countDistinctPostByUserId(userId);
+    }
+
+    public int countLikesByUser(Long userId) {
+        return commentRepository.sumLikeCountByUserId(userId);
+    }
+
+    public int countRepliesByUser(Long userId) {
+        return commentRepository.sumReplyCountByUserId(userId);
+    }
+
+    // Đổi kiểu trả về từ Object[] sang Post
+    public List<Post> getPostsUserCommented(Long userId) {
+        return commentRepository.findPostsUserCommented(userId);
     }
 }

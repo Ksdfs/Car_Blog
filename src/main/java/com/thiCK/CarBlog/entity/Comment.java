@@ -11,107 +11,124 @@ import java.util.List;
 @Table(name = "Comments")
 public class Comment {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "comment_id")
-	private Integer commentId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "comment_id")
+    private Integer commentId;
 
-	@Column(nullable = false, columnDefinition = "NVARCHAR(MAX)")
-	private String content;
+    @Column(nullable = false, columnDefinition = "NVARCHAR(MAX)")
+    private String content;
 
-	@CreationTimestamp
-	@Column(name = "created_at", nullable = false, updatable = false)
-	private LocalDateTime createdAt;
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-	/** Số lượt like */
-	@Column(name = "likes", nullable = false)
-	private Integer likes = 0;
+    /** Số lượt like hiện tại (logic frontend hoặc memory) */
+    @Column(name = "likes", nullable = false)
+    private Integer likes = 0;
 
-	/** Nếu là reply thì trỏ đến comment cha */
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "parent_comment_id")
-	private Comment parentComment;
+    /** Số lượt like thực tế trong DB */
+    @Column(name = "like_count", nullable = false)
+    private Integer likeCount = 0;
 
-	/** Tập hợp replies (các comment con) */
-	@OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-	private List<Comment> replies = new ArrayList<>();
+    /** Nếu là reply thì trỏ đến comment cha */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_comment_id")
+    private Comment parentComment;
 
-	/** Quan hệ với Post */
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "post_id", nullable = false)
-	private Post post;
+    /** Tập hợp replies (các comment con) */
+    @OneToMany(
+        mappedBy = "parentComment",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true,
+        fetch = FetchType.EAGER
+    )
+    private List<Comment> replies = new ArrayList<>();
 
-	/** Quan hệ với User */
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id", nullable = false)
-	private User user;
+    /** Quan hệ với Post */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id", nullable = false)
+    private Post post;
 
-	public Comment() {
-	}
+    /** Quan hệ với User */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-	// === Getters & Setters ===
+    public Comment() {
+    }
 
-	public Integer getCommentId() {
-		return commentId;
-	}
+    // === Getters & Setters ===
 
-	public void setCommentId(Integer commentId) {
-		this.commentId = commentId;
-	}
+    public Integer getCommentId() {
+        return commentId;
+    }
 
-	public String getContent() {
-		return content;
-	}
+    public void setCommentId(Integer commentId) {
+        this.commentId = commentId;
+    }
 
-	public void setContent(String content) {
-		this.content = content;
-	}
+    public String getContent() {
+        return content;
+    }
 
-	public LocalDateTime getCreatedAt() {
-		return createdAt;
-	}
+    public void setContent(String content) {
+        this.content = content;
+    }
 
-	public void setCreatedAt(LocalDateTime createdAt) {
-		this.createdAt = createdAt;
-	}
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
 
-	public Integer getLikes() {
-		return likes;
-	}
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 
-	public void setLikes(Integer likes) {
-		this.likes = likes;
-	}
+    public Integer getLikes() {
+        return likes;
+    }
 
-	public Comment getParentComment() {
-		return parentComment;
-	}
+    public void setLikes(Integer likes) {
+        this.likes = likes;
+    }
 
-	public void setParentComment(Comment parentComment) {
-		this.parentComment = parentComment;
-	}
+    public Integer getLikeCount() {
+        return likeCount;
+    }
 
-	public List<Comment> getReplies() {
-		return replies;
-	}
+    public void setLikeCount(Integer likeCount) {
+        this.likeCount = likeCount;
+    }
 
-	public void setReplies(List<Comment> replies) {
-		this.replies = replies;
-	}
+    public Comment getParentComment() {
+        return parentComment;
+    }
 
-	public Post getPost() {
-		return post;
-	}
+    public void setParentComment(Comment parentComment) {
+        this.parentComment = parentComment;
+    }
 
-	public void setPost(Post post) {
-		this.post = post;
-	}
+    public List<Comment> getReplies() {
+        return replies;
+    }
 
-	public User getUser() {
-		return user;
-	}
+    public void setReplies(List<Comment> replies) {
+        this.replies = replies;
+    }
 
-	public void setUser(User user) {
-		this.user = user;
-	}
+    public Post getPost() {
+        return post;
+    }
+
+    public void setPost(Post post) {
+        this.post = post;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 }
