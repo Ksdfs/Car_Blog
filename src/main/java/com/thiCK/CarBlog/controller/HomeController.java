@@ -6,10 +6,10 @@ import com.thiCK.CarBlog.service.CategoryService;
 import com.thiCK.CarBlog.service.PostService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -28,16 +28,24 @@ public class HomeController {
         this.categoryService = categoryService;
     }
 
-    @GetMapping({"/", "/index", "/home"})
+    /**
+     * Trang chủ ("/", "/index", "/home"):
+     * - Nếu có từ khóa "keyword" thì tìm kiếm prefix trong tất cả bài,
+     *   rồi chỉ giữ lại các bài có status = "published".
+     * - Nếu không có keyword, lấy page các bài published.
+     */
+    @GetMapping({ "/", "/index", "/home" })
     public String index(HttpServletRequest request,
                         HttpSession session,
                         Model model,
                         @RequestParam(value = "keyword", required = false) String keyword,
                         @RequestParam(value = "page", defaultValue = "0") int page) {
 
+        // Lấy danh sách tất cả categories
         List<Category> categories = categoryService.findAll();
         model.addAttribute("categories", categories);
 
+        // Tính featuredCategories: 4 category có nhiều bài nhất
         List<Category> featured = categories.stream()
             .sorted(Comparator.comparingInt((Category c) -> c.getPosts().size()).reversed())
             .limit(4)
@@ -45,12 +53,21 @@ public class HomeController {
         model.addAttribute("featuredCategories", featured);
 
         if (keyword != null && !keyword.trim().isEmpty()) {
-            List<Post> searchResults = postService.searchByPrefix(keyword.trim());
-            model.addAttribute("posts", searchResults);
-            model.addAttribute("keyword", keyword);
+            // Tìm kiếm tất cả bài chứa prefix (searchByPrefix returns all statuses)
+            List<Post> allMatching = postService.searchByPrefix(keyword.trim());
+
+            // Lọc chỉ giữ các post có status = "published"
+            List<Post> publishedMatching = allMatching.stream()
+                    .filter(p -> "published".equalsIgnoreCase(p.getStatus()))
+                    .collect(Collectors.toList());
+
+            model.addAttribute("posts", publishedMatching);
+            model.addAttribute("keyword", keyword.trim());
         } else {
             int size = 6;
-            var postPage = postService.getLatestPosts(page, size);
+            // Lấy page chỉ chứa post đã published
+            Page<Post> postPage = postService.getPublishedPosts(page, size);
+
             model.addAttribute("posts", postPage.getContent());
             model.addAttribute("currentPage", page);
             model.addAttribute("totalPages", postPage.getTotalPages());
@@ -60,7 +77,6 @@ public class HomeController {
         model.addAttribute("currentPath", request.getRequestURI());
         return "index";
     }
-
 
     @GetMapping("/about")
     public String about() {
@@ -72,29 +88,22 @@ public class HomeController {
         return "contact";
     }
 
-	/*
-	 * @GetMapping("/posts/{id}") public String viewPost(HttpServletRequest request,
-	 * 
-	 * @PathVariable("id") Integer id, HttpSession session, Model model) { Post post
-	 * = postService.findById(id) .orElseThrow(() -> new
-	 * RuntimeException("Không tìm thấy bài viết id=" + id));
-	 * 
-	 * List<Post> userPosts = postService.findAllByUser(post.getUser()).stream()
-	 * .filter(p -> !p.getPostId().equals(id)) .collect(Collectors.toList());
-	 * 
-	 * model.addAttribute("post", post); model.addAttribute("categories",
-	 * categoryService.findAll()); model.addAttribute("userPosts", userPosts);
-	 * 
-	 * return "post_detail"; }
-	 */
-
-    // API endpoint trả về JSON dùng AJAX live-search
+    /**
+     * API endpoint trả về JSON dùng AJAX live-search:
+     * Tương tự, filter chỉ post có status = "published" trên kết quả searchByPrefix.
+     */
     @GetMapping("/search")
     @ResponseBody
     public List<Map<String, Object>> searchAjax(@RequestParam("keyword") String keyword) {
-        List<Post> found = postService.searchByPrefix(keyword.trim());
+        List<Post> allFound = postService.searchByPrefix(keyword.trim());
+
+        // Chỉ giữ post đã published
+        List<Post> publishedFound = allFound.stream()
+                .filter(p -> "published".equalsIgnoreCase(p.getStatus()))
+                .collect(Collectors.toList());
+
         List<Map<String, Object>> result = new ArrayList<>();
-        for (Post p : found) {
+        for (Post p : publishedFound) {
             String img = p.getMainImage();
             if (!img.startsWith("/")) {
                 img = "/" + img;
@@ -107,17 +116,21 @@ public class HomeController {
         }
         return result;
     }
-    
+
+    /**
+     * API endpoint trả về JSON page posts dùng AJAX (infinite scroll, pagination UI):
+     * Lấy page chỉ chứa post đã published
+     */
     @GetMapping("/api/posts")
     @ResponseBody
     public Map<String, Object> getPagedPosts(@RequestParam(defaultValue = "0") int page) {
         int size = 6;
-        var postPage = postService.getLatestPosts(page, size);
+        Page<Post> postPage = postService.getPublishedPosts(page, size);
+
         Map<String, Object> response = new HashMap<>();
         response.put("posts", postPage.getContent());
         response.put("totalPages", postPage.getTotalPages());
         response.put("currentPage", page);
         return response;
     }
-
 }
