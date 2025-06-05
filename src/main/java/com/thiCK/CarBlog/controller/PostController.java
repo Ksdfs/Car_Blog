@@ -41,12 +41,13 @@ public class PostController {
         this.userService = userService;
     }
 
-    /** Danh sách bài viết có phân trang */
+    /** Danh sách bài viết đã xuất bản có phân trang */
     @GetMapping({ "", "/" })
     public String index(Model model,
                         @RequestParam(name = "page", defaultValue = "0") int page) {
         int size = 6;
-        Page<Post> postPage = postService.getLatestPosts(page, size);
+        // Chỉ lấy các bài có status = "published"
+        Page<Post> postPage = postService.getPublishedPosts(page, size);
 
         model.addAttribute("posts", postPage.getContent());
         model.addAttribute("currentPage", postPage.getNumber());
@@ -76,7 +77,8 @@ public class PostController {
         post.setUser(currentUser);
         post.setCreatedAt(LocalDateTime.now());
         postService.save(post, mainImageFile, imageFiles);
-        return "redirect:/posts/";
+        // Redirect về trang index gốc (http://localhost:8080/)
+        return "redirect:/";
     }
 
     /** Form chỉnh sửa */
@@ -84,7 +86,8 @@ public class PostController {
     public String showEditForm(@PathVariable Integer id, Model model) {
         Optional<Post> opt = postService.findById(id);
         if (opt.isEmpty()) {
-            return "redirect:/posts/";
+            // Nếu không tìm thấy, quay về trang index gốc
+            return "redirect:/";
         }
         model.addAttribute("post", opt.get());
         model.addAttribute("categories", categoryService.findAll());
@@ -99,14 +102,16 @@ public class PostController {
                              @RequestParam(value = "imageFiles", required = false) MultipartFile[] imageFiles)
                              throws IOException {
         postService.updatePost(id, postData, mainImageFile, imageFiles);
-        return "redirect:/posts/";
+        // Redirect về trang index gốc (http://localhost:8080/)
+        return "redirect:/";
     }
 
     /** Xóa bài viết */
     @PostMapping("/{id}/delete")
     public String deletePost(@PathVariable Integer id) {
         postService.deletePost(id);
-        return "redirect:/posts/";
+        // Redirect về trang index gốc (http://localhost:8080/)
+        return "redirect:/";
     }
 
     /** Chi tiết bài viết */

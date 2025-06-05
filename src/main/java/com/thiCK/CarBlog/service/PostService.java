@@ -198,4 +198,10 @@ public class PostService {
             postRepo.save(p);
         });
     }
+    
+    public Page<Post> getPublishedPosts(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return postRepo.findByStatus("published", pageable);
+    }
+
 }
