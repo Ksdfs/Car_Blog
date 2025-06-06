@@ -51,4 +51,26 @@ public class UserService {
     public User save(User user) {
         return userRepo.save(user);
     }
+
+    /** Kiểm tra xem raw currentPassword có đúng với mật khẩu hiện tại (lưu plain-text) */
+    public boolean checkIfValidOldPassword(User user, String currentPassword) {
+        // So sánh trực tiếp raw password
+        return currentPassword.equals(user.getPassword());
+    }
+
+    /** Cập nhật mật khẩu mới đơn giản: lưu thẳng raw password vào DB */
+    public void updatePassword(User user, String newPassword) {
+        user.setPassword(newPassword);
+        userRepo.save(user);
+    }
+    
+    /** Xóa user theo thực thể */
+    public void delete(User user) {
+        userRepo.delete(user);
+    }
+
+    /** Xóa user theo id */
+    public void deleteById(Long userId) {
+        userRepo.deleteById(userId);
+    }
 }
