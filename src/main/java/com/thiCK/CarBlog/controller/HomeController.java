@@ -104,14 +104,13 @@ public class HomeController {
 
         List<Map<String, Object>> result = new ArrayList<>();
         for (Post p : publishedFound) {
-            String img = p.getMainImage();
-            if (!img.startsWith("/")) {
-                img = "/" + img;
-            }
+            // Thay đổi chỗ này: nối trực tiếp "/uploads/post/" với tên file chính (mainImage)
+            String imgPath = "/uploads/post/" + p.getMainImage();
+
             Map<String, Object> m = new HashMap<>();
             m.put("id", p.getPostId());
             m.put("title", p.getTitle());
-            m.put("image", img);
+            m.put("image", imgPath);
             result.add(m);
         }
         return result;
