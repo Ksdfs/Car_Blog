@@ -157,14 +157,21 @@
 										<!-- Profile Picture -->
 										<div class="col-12 text-center">
 											<div class="position-relative d-inline-block">
-												<img
-													th:src="@{${currentUser.avatar} != null 
-					                ? ${currentUser.avatar} 
-					                : 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}"
+												<!-- Khi có avatar trong DB -->
+												<img th:if="${currentUser.avatar != null}"
+													th:src="@{${currentUser.avatar}}" id="profileImage"
+													class="rounded-circle"
+													style="width: 120px; height: 120px; object-fit: cover;"
+													alt="User Avatar" />
+
+												<!-- Khi chưa có avatar (avatar mặc định) -->
+												<img th:unless="${currentUser.avatar != null}"
+													src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
 													id="profileImage" class="rounded-circle"
 													style="width: 120px; height: 120px; object-fit: cover;"
 													alt="Default Avatar" />
 
+												<!-- Nút đổi ảnh vẫn nằm trên cùng -->
 												<button type="button" id="changePhotoBtn"
 													class="btn btn-primary btn-sm rounded-circle position-absolute bottom-0 end-0 d-none"
 													style="width: 35px; height: 35px;"
@@ -174,6 +181,7 @@
 												<input type="file" id="profilePictureInput" name="avatar"
 													accept="image/*" class="d-none">
 											</div>
+
 											<div class="mt-2">
 												<h4 class="text-white mb-1"
 													th:text="${currentUser.fullName}">Họ tên</h4>
@@ -212,14 +220,14 @@
 											<label for="gender" class="form-label text-muted">Giới
 												tính</label> <select class="form-select" id="gender" name="gender">
 												<option value="">Chọn Giới Tính</option>
-												<option value="Nam"
-													th:selected="${currentUser.gender == 'Nam'}">Nam</option>
-												<option value="Nữ"
-													th:selected="${currentUser.gender == 'Nữ'}">Nữ</option>
-												<option value="Khác"
-													th:selected="${currentUser.gender == 'Khác'}">Khác</option>
+												<option value="M" th:selected="${currentUser.gender == 'M'}">Nam</option>
+												<option value="F" th:selected="${currentUser.gender == 'F'}">Nữ</option>
+												<!-- Nếu bạn có thêm giá trị khác trong constraint, ví dụ 'O' -->
+												<option value="O" th:selected="${currentUser.gender == 'O'}">Khác</option>
 											</select>
 										</div>
+
+
 										<div class="col-12">
 											<label for="bio" class="form-label text-muted">Bio</label>
 											<textarea class="form-control" id="bio" name="bio" rows="4"
@@ -632,8 +640,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 </script>
-<!-- Script tìm kiếm -->
-<script>
+	<!-- Script tìm kiếm -->
+	<script>
   document.addEventListener("DOMContentLoaded", function() {
     const input = document.querySelector('input[name="keyword"]');
     const results = document.getElementById('searchResults');
